@@ -2,11 +2,11 @@
 
 extern const int SPRITE_WIDTH  = 12;
 extern const int SPRITE_HEIGHT = 12;
-extern sf::Font font;
+// extern sf::Font font;
 
 using namespace sf;
 
-int initSpriteSheet(bool is_ascii) {
+int SpritesheetLoadingSystem(bool is_ascii) {
     auto sprite_type = is_ascii ? "../include/alloy_curses_12x12.png"
                                 : "../include/urizen_onebit_tileset__v1d1.png";
     ;
@@ -30,7 +30,7 @@ int initSpriteSheet(bool is_ascii) {
     return 0;
 }
 
-void generateSpritesVector(bool is_ascii) {
+void SpriteGenerator(bool is_ascii) {
     auto sprites = is_ascii ? ASCII_COORDINATES : SPRITE_COORDINATES;
 
     for (const auto& pair : sprites) {

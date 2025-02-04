@@ -1,18 +1,31 @@
-#include "grid.hpp"
+#pragma once
+#include "sprite.hpp"
 
-#include <SFML/Graphics/Sprite.hpp>
+#include <SFML/Graphics.hpp>
 
-enum EntityType {
-    Player,
-    Mob,
-    ShopKeeper,
+using namespace sf;
+
+using Entity = std::uint64_t;
+
+const Entity MAX_ENTITIES = 10000;
+
+// Components
+// struct Position {
+//     int x, y;
+// };
+// struct Velocity {
+//     int dx, dy;
+// };
+
+struct Player {
+    Sprite sprite;
+    SpriteTiles sprite_type;
+    Vector2i position;
+
+    Player(SpriteTiles tile);
 };
 
-struct Entity {
-    EntityType type;
-    sf::Sprite* sprite;
-    Position position;
-
-    Entity(EntityType type) : type(type) {};
-    Entity(Position position, EntityType type) : type(type), position(position) {};
-};
+// struct Monster {
+//     Sprite* sprite;
+//     Vector2i position;
+// };

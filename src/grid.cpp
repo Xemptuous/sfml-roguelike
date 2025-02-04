@@ -1,20 +1,12 @@
 #include "grid.hpp"
 
-#include "sprite.hpp"
-
 #include <random>
 
 extern const int CONSOLE_WIDTH, CONSOLE_HEIGHT;
 extern const int MAP_WIDTH  = 300;
 extern const int MAP_HEIGHT = 300;
 const int NUM_BUILDINGS     = 300;
-
-extern sf::RenderTexture renderTexture;
-
-Grid::Grid() {
-    this->tiles = this->generateMapTiles();
-    this->generateBuildings();
-}
+extern sf::Vector2f SIZE_FACTOR, SCALE_FACTOR;
 
 Tile::Tile() : sprite(*getSpriteTile(None)), bg_sprite(*getSpriteTile(BrownWall1)) {
     this->tile_type   = TileType::Floor;
@@ -57,18 +49,35 @@ void Tile::resetSprite() {
     this->bg_sprite = *getSpriteTile(BrownWall1);
 }
 
-std::vector<Tile> Grid::generateMapTiles() {
-    std::vector<Tile> tiles = std::vector<Tile>{};
+Grid::Grid() : tiles(std::vector<Tile>(MAP_WIDTH * MAP_HEIGHT, Tile())) {};
 
+bool Building::intersects(Building& r) {
+    const int b = 2; // buffer between buildings (+1)
+    return x1 < r.x2 + b && x2 > r.x1 - b && y1 < r.y2 + b && y2 > r.y1 - b;
+}
+
+bool Grid::isWalkable(int x, int y) {
+    return (
+        x >= 0 && y >= 0 && x < MAP_WIDTH && y < MAP_HEIGHT && tiles[xy_idx(x, y)].tile_type != Wall
+    );
+}
+
+void Grid::reloadSprites() {
+    for (Tile& tile : this->tiles)
+        tile.resetSprite();
+}
+
+// Systems
+void MapGeneratorSystem(Grid& grid) {
     int n = MAP_HEIGHT * MAP_WIDTH;
-    tiles.reserve(n);
+    grid.tiles.clear();
+    grid.tiles.reserve(n);
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<int> picker(0, 80);
 
     for (int i = 0; i < n; i++) {
-        auto c = idx_xy(i);
-        int x = c.first, y = c.second;
+        sf::Vector2i pos = idx_xy(i);
         switch (picker(rng)) {
             case 0:
             case 1:
@@ -78,7 +87,7 @@ std::vector<Tile> Grid::generateMapTiles() {
             case 5:
             case 6:
             case 7:
-            case 8:  tiles.push_back(Tile({x, y}, Floor, DimGrass1, rl::Color::DarkGreen)); break;
+            case 8:  grid.tiles.push_back(Tile(pos, Floor, DimGrass1, rl::Color::DarkGreen)); break;
             case 9:
             case 10:
             case 11:
@@ -87,27 +96,21 @@ std::vector<Tile> Grid::generateMapTiles() {
             case 14:
             case 15:
             case 16:
-            case 17: tiles.push_back(Tile({x, y}, Floor, DimGrass2, rl::Color::DarkGreen)); break;
-            case 18: tiles.push_back(Tile({x, y}, Floor, Grass1, rl::Color::Green)); break;
-            case 19: tiles.push_back(Tile({x, y}, Floor, Grass2, rl::Color::Green)); break;
-            case 20: tiles.push_back(Tile({x, y}, Floor, Flower1, rl::Color::Red)); break;
-            case 21: tiles.push_back(Tile({x, y}, Floor, Flower2, rl::Color::Red)); break;
-            case 22: tiles.push_back(Tile({x, y}, Floor, Mushroom1, rl::Color::Red)); break;
-            case 23: tiles.push_back(Tile({x, y}, Floor, Mushroom2, rl::Color::Gray)); break;
-            case 24: tiles.push_back(Tile({x, y}, Wall, Tree1, rl::Color::SaddleBrown)); break;
-            case 25: tiles.push_back(Tile({x, y}, Wall, Tree2, rl::Color::SaddleBrown)); break;
-            default: tiles.push_back(Tile({x, y}, Floor, None));
+            case 17: grid.tiles.push_back(Tile(pos, Floor, DimGrass2, rl::Color::DarkGreen)); break;
+            case 18: grid.tiles.push_back(Tile(pos, Floor, Grass1, rl::Color::Green)); break;
+            case 19: grid.tiles.push_back(Tile(pos, Floor, Grass2, rl::Color::Green)); break;
+            case 20: grid.tiles.push_back(Tile(pos, Floor, Flower1, rl::Color::Red)); break;
+            case 21: grid.tiles.push_back(Tile(pos, Floor, Flower2, rl::Color::Red)); break;
+            case 22: grid.tiles.push_back(Tile(pos, Floor, Mushroom1, rl::Color::Red)); break;
+            case 23: grid.tiles.push_back(Tile(pos, Floor, Mushroom2, rl::Color::Gray)); break;
+            case 24: grid.tiles.push_back(Tile(pos, Wall, Tree1, rl::Color::SaddleBrown)); break;
+            case 25: grid.tiles.push_back(Tile(pos, Wall, Tree2, rl::Color::SaddleBrown)); break;
+            default: grid.tiles.push_back(Tile(pos, Floor, None));
         }
     }
-    return tiles;
 }
 
-bool Building::intersects(Building& r) {
-    const int b = 2; // buffer between buildings (+1)
-    return x1 < r.x2 + b && x2 > r.x1 - b && y1 < r.y2 + b && y2 > r.y1 - b;
-}
-
-void Grid::generateBuildings() {
+void BuildingGeneratorSystem(Grid& grid) {
     using namespace rl;
     std::random_device dev;
     std::mt19937 rng(dev());
@@ -119,7 +122,8 @@ void Grid::generateBuildings() {
     std::uniform_int_distribution<int> xy(0, 3);
     std::uniform_int_distribution<int> edgeDist(0, 3);
 
-    this->buildings.reserve(NUM_BUILDINGS);
+    std::vector<Building> buildings;
+    buildings.reserve(NUM_BUILDINGS);
 
     for (int i = 0; i < NUM_BUILDINGS; i++) {
         int width  = room_size(rng);
@@ -150,34 +154,38 @@ void Grid::generateBuildings() {
                     if (x == b.x1 || x == b.x2 || y == b.y1 || y == b.y2) {
                         switch (wall_type) {
                             case 0:
-                                tiles[xy_idx(x, y)] =
+                                grid.tiles[xy_idx(x, y)] =
                                     Tile({x, y}, Wall, BrownWall1, Color::SaddleBrown);
                                 break;
                             case 1:
-                                tiles[xy_idx(x, y)] =
+                                grid.tiles[xy_idx(x, y)] =
                                     Tile({x, y}, Wall, WoodWall1, Color::SandyBrown);
                                 break;
                             default:
-                                tiles[xy_idx(x, y)] = Tile({x, y}, Wall, StoneWall1, Color::Silver);
+                                grid.tiles[xy_idx(x, y)] =
+                                    Tile({x, y}, Wall, StoneWall1, Color::Silver);
                                 break;
                         }
                         continue;
                     }
                     switch (floor_type) {
                         case 0:
-                            tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Carpet1, Color::Gray);
+                            grid.tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Carpet1, Color::Gray);
                             break;
                         case 1:
-                            tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Carpet2, Color::SaddleBrown);
+                            grid.tiles[xy_idx(x, y)] =
+                                Tile({x, y}, Floor, Carpet2, Color::SaddleBrown);
                             break;
                         case 2:
-                            tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Carpet3, Color::SaddleBrown);
+                            grid.tiles[xy_idx(x, y)] =
+                                Tile({x, y}, Floor, Carpet3, Color::SaddleBrown);
                             break;
                         case 3:
-                            tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Carpet4, Color::SaddleBrown);
+                            grid.tiles[xy_idx(x, y)] =
+                                Tile({x, y}, Floor, Carpet4, Color::SaddleBrown);
                             break;
                         default:
-                            tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Stone1, Color::Gray);
+                            grid.tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Stone1, Color::Gray);
                             break;
                     }
                 }
@@ -210,97 +218,11 @@ void Grid::generateBuildings() {
 
                 // Replace the chosen wall tile with a door
                 if (door_x >= 0 && door_x < MAP_WIDTH && door_y >= 0 && door_y < MAP_HEIGHT) {
-                    tiles[xy_idx(door_x, door_y)] = Tile(
+                    grid.tiles[xy_idx(door_x, door_y)] = Tile(
                         {door_x, door_y}, TileType::Floor, SpriteTiles::DoorClosed1, rl::Color::Tan
                     );
                 }
             }
-
-            // // Add rooms to buildings
-            // edge = edgeDist(rng);
-            //
-            // int roomWidth  = room_size(rng) / 2; // Smaller than main building
-            // int roomHeight = room_size(rng) / 2;
-            // int rx1, ry1, rx2, ry2;
-            //
-            // switch (edge) {
-            //     case 0: // Top edge
-            //         rx1 = x1 + (width - roomWidth) / 2;
-            //         ry1 = y1 - roomHeight;
-            //         rx2 = rx1 + roomWidth;
-            //         ry2 = y1;
-            //         break;
-            //     case 1: // Bottom edge
-            //         rx1 = x1 + (width - roomWidth) / 2;
-            //         ry1 = y2;
-            //         rx2 = rx1 + roomWidth;
-            //         ry2 = ry1 + roomHeight;
-            //         break;
-            //     case 2: // Left edge
-            //         rx1 = x1 - roomWidth;
-            //         ry1 = y1 + (height - roomHeight) / 2;
-            //         rx2 = x1;
-            //         ry2 = ry1 + roomHeight;
-            //         break;
-            //     case 3: // Right edge
-            //         rx1 = x2;
-            //         ry1 = y1 + (height - roomHeight) / 2;
-            //         rx2 = rx1 + roomWidth;
-            //         ry2 = ry1 + roomHeight;
-            //         break;
-            // }
-            //
-            // if (rx1 >= 0 && rx2 < MAP_WIDTH && ry1 >= 0 && ry2 < MAP_HEIGHT) {
-            //     // Ensure the room does not overlap another building
-            //     Building room       = Building{rx1, ry1, rx2, ry2};
-            //     bool can_place_room = true;
-            //     for (Building& other : buildings) {
-            //         if (room.intersects(other)) {
-            //             can_place_room = false;
-            //             break;
-            //         }
-            //     }
-            //
-            //     if (can_place_room) {
-            //         buildings.push_back(room);
-            //
-            //         // Build the room
-            //         for (int x = room.x1; x <= room.x2; x++) {
-            //             for (int y = room.y1; y <= room.y2; y++) {
-            //                 // If outer edge, make walls
-            //                 if (x == room.x1 || x == room.x2 || y == room.y1 || y == room.y2) {
-            //                     tiles[xy_idx(x, y)] =
-            //                         Tile({x, y}, TileType::Wall, SpriteTiles::Wall1);
-            //                     continue;
-            //                 }
-            //                 tiles[xy_idx(x, y)] =
-            //                     Tile({x, y}, TileType::Floor, SpriteTiles::Stone1);
-            //             }
-            //         }
-            //         // Add a door between the main building and the room
-            //         int door_x, door_y;
-            //         switch (edge) {
-            //             case 0: // Top edge
-            //                 door_x = rx1 + roomWidth / 2;
-            //                 door_y = y1;
-            //                 break;
-            //             case 1: // Bottom edge
-            //                 door_x = rx1 + roomWidth / 2;
-            //                 door_y = y2;
-            //                 break;
-            //             case 2: // Left edge
-            //                 door_x = x1;
-            //                 door_y = ry1 + roomHeight / 2;
-            //                 break;
-            //             case 3: // Right edge
-            //                 door_x = x2;
-            //                 door_y = ry1 + roomHeight / 2;
-            //                 break;
-            //         }
-            //         tiles[xy_idx(door_x, door_y)] =
-            //             Tile({door_x, door_y}, TileType::Floor, SpriteTiles::Door1);
-            //     }
-            // }
         }
     }
 }
@@ -309,6 +231,6 @@ int xy_idx(int x, int y) {
     return y * MAP_WIDTH + x;
 }
 
-std::pair<int, int> idx_xy(int idx) {
-    return std::make_pair(idx % MAP_WIDTH, idx / MAP_WIDTH);
+sf::Vector2i idx_xy(int idx) {
+    return sf::Vector2i{idx % MAP_WIDTH, idx / MAP_WIDTH};
 }

@@ -1,232 +1,269 @@
 #include "engine.hpp"
 
-#include "grid.hpp"
-#include "player.hpp"
 #include "sprite.hpp"
 
-#include <SFML/Graphics/Rect.hpp>
-#include <SFML/Graphics/RenderTexture.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <SFML/Window/Keyboard.hpp>
+#include <SFML/Window/Window.hpp>
+#include <algorithm>
 #include <cmath>
 
-extern const int RENDER_WIDTH, RENDER_HEIGHT;
-extern const int CONSOLE_WIDTH, CONSOLE_HEIGHT;
-extern const int SPRITE_WIDTH, SPRITE_HEIGHT;
-extern const int MAP_WIDTH, MAP_HEIGHT;
+extern int MAP_WIDTH, MAP_HEIGHT;
+extern int SPRITE_WIDTH, SPRITE_HEIGHT;
+extern int RENDER_WIDTH, RENDER_HEIGHT;
+extern int CONSOLE_WIDTH, CONSOLE_HEIGHT;
 
-extern sf::RenderTexture renderTexture;
-extern sf::RenderWindow window;
-extern sf::View view;
+Options OPTIONS;
+Vector2f SIZE_FACTOR{};
+Vector2f SCALE_FACTOR{};
 
-Engine::Engine(Options options) : options(options) {
-    this->player = new Player(SpriteTiles::PlayerMaleStanding);
-    this->grid   = new Grid();
-    this->update();
+// Component Storage
+std::unordered_map<Entity, Position> positions{};
+std::unordered_map<Entity, Movement> movements{};
+std::unordered_map<Entity, Renderable> renderables{};
+
+// Systems
+void DrawSystem(RenderWindow& window, RenderTexture& renderTexture, Camera& camera, Grid& grid) {
+    // printf("DrawSystem\n");
+    window.clear();
+    renderTexture.setView(camera.view);
+    renderTexture.clear();
+
+    RenderSystem(renderTexture, camera, grid);
+
+    renderTexture.display();
+    const sf::Texture& texture = renderTexture.getTexture();
+    sf::Sprite sprite(texture);
+
+    window.draw(sprite);
+    window.display();
 }
 
-Engine::~Engine() {
-    delete this->player;
-    delete this->grid;
-}
-
-void Engine::update() {
-    this->updateScreenSize();
-    this->updateViewPosition();
-    this->updateViewDimensions();
-    this->updateMap();
-}
-
-void Engine::handleKey() {
-    using namespace sf::Keyboard;
-    int idx;
-    if (isKeyPressed(Key::Left)) tryMovePlayer(-1, 0);
-    if (isKeyPressed(Key::Right)) tryMovePlayer(1, 0);
-    if (isKeyPressed(Key::Up)) tryMovePlayer(0, -1);
-    if (isKeyPressed(Key::Down)) tryMovePlayer(0, 1);
-
-    if (isKeyPressed(Key::K)) tryMoveView(0, -1);
-    if (isKeyPressed(Key::H)) tryMoveView(-1, 0);
-    if (isKeyPressed(Key::J)) tryMoveView(0, 1);
-    if (isKeyPressed(Key::L)) tryMoveView(1, 0);
-}
-
-void Engine::tryMoveView(int dx, int dy) {
-    int nx1 = view_rect.x1 + dx;
-    int nx2 = view_rect.x2 + dx;
-    int ny1 = view_rect.y1 + dy;
-    int ny2 = view_rect.y2 + dy;
-
-    if (nx1 < 0 || ny1 < 0 || nx2 > MAP_WIDTH || ny2 > MAP_HEIGHT) {
-        return;
+void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid) {
+    // printf("RenderSystem\n");
+    // draw the map
+    for (int x = camera.x1; x < camera.x2; x++) {
+        for (int y = camera.y1; y < camera.y2; y++) {
+            int idx   = xy_idx(x, y);
+            Tile tile = grid.tiles[idx];
+            if (OPTIONS.is_ascii) {
+                renderTexture.draw(tile.bg_sprite);
+            }
+            renderTexture.draw(tile.sprite);
+        }
     }
-    view.move({
-        dx * SPRITE_WIDTH * scale_factor.x,
-        dy * SPRITE_HEIGHT * scale_factor.y,
+
+    // draw entities
+    std::vector<std::pair<Entity, Renderable>> renderQueue;
+    for (auto& [entity, renderable] : renderables) {
+        renderQueue.push_back({entity, renderable});
+    }
+    std::sort(renderQueue.begin(), renderQueue.end(), [](auto& a, auto& b) {
+        return a.second.zIndex < b.second.zIndex;
     });
 
-    // Recalculate view rect
-    updateViewDimensions();
-}
+    for (auto& [entity, renderable] : renderQueue) {
+        if (positions.count(entity)) {
+            const Position& pos = positions[entity];
 
-void Engine::tryMovePlayer(int dx, int dy) {
-    int dest_x = player->position.x + dx;
-    int dest_y = player->position.y + dy;
+            // draw
+            // renderTexture.draw(renderable.sprite);
 
-    // if OOB
-    if (dest_x < 0 || dest_y < 0 || dest_x >= MAP_WIDTH || dest_y >= MAP_HEIGHT) return;
-
-    int idx = xy_idx(dest_x, dest_y);
-
-    if (this->grid->tiles[idx].tile_type == TileType::Wall) return;
-
-    player->position.x = dest_x;
-    player->position.y = dest_y;
-
-    // printf("Player: (%d, %d)\n", player->position.x, player->position.y);
-
-    bool can_move_view_x = true;
-    bool can_move_view_y = true;
-
-    int view_cw = (view_rect.x2 - view_rect.x1) / 2;
-    int view_ch = (view_rect.y2 - view_rect.y1) / 2;
-
-    bool view_at_left   = view_rect.x1 <= 0;
-    bool view_at_right  = view_rect.x2 >= MAP_WIDTH;
-    bool view_at_top    = view_rect.y1 <= 0;
-    bool view_at_bottom = view_rect.y2 >= MAP_HEIGHT;
-
-    bool player_left_of_center  = player->position.x <= view_rect.x2 / 2;
-    bool player_right_of_center = player->position.x >= MAP_WIDTH - view_cw;
-    bool player_above_center    = player->position.y <= view_rect.y2 / 2;
-    bool player_below_center    = player->position.y >= MAP_HEIGHT - view_ch;
-
-    if (dx < 0 && (view_at_left || (view_at_right && player_right_of_center)))
-        can_move_view_x = false;
-    else if (dx > 0 && (view_at_right || (view_at_left && player_left_of_center)))
-        can_move_view_x = false;
-    else if (dy < 0 && (view_at_top || (view_at_bottom && player_below_center)))
-        can_move_view_y = false;
-    else if (dy > 0 && (view_at_bottom || (view_at_top && player_above_center)))
-        can_move_view_y = false;
-
-    if (can_move_view_x) tryMoveView(dx, 0);
-    if (can_move_view_y) tryMoveView(0, dy);
-}
-
-void Engine::drawEntities() {
-    /*
-    Ww / Cw * Player.x = x position
-    Wh / Ch * Player.y = y position
-    */
-    printf("DRAW\n");
-    Vector2f pos{
-        std::round(size_factor.x * player->position.x),
-        std::round(size_factor.y * player->position.y),
-    };
-    player->sprite->setPosition(pos);
-    player->sprite->setScale(scale_factor);
-    if (options.is_ascii) {
-        Sprite* bg = getSpriteTile(SpriteTiles::WoodWall1);
-        bg->setPosition(pos);
-        bg->setColor(sf::Color::Black);
-        renderTexture.draw(*bg);
+            Vector2f posv{
+                std::round(SIZE_FACTOR.x * positions[entity].x),
+                std::round(SIZE_FACTOR.y * positions[entity].y),
+            };
+            renderable.sprite.setPosition(posv);
+            renderable.sprite.setScale(SCALE_FACTOR);
+            if (OPTIONS.is_ascii) {
+                Sprite* bg = getSpriteTile(SpriteTiles::WoodWall1);
+                bg->setPosition(posv);
+                bg->setColor(sf::Color::Black);
+                renderTexture.draw(*bg);
+            }
+            renderTexture.draw(renderable.sprite);
+        }
     }
-    renderTexture.draw(*player->sprite);
 }
 
-void Engine::updateMap() {
-    for (Tile& tile : this->grid->tiles) {
+void InputSystem(Entity& player) {
+    // printf("InputSystem\n");
+    using namespace sf::Keyboard;
+    int dx = 0, dy = 0;
+    if (isKeyPressed(Key::Left)) dx = -1;
+    if (isKeyPressed(Key::Right)) dx = 1;
+    if (isKeyPressed(Key::Up)) dy = -1;
+    if (isKeyPressed(Key::Down)) dy = 1;
+
+    if (dx != 0 || dy != 0) {
+        movements[player] = {dx, dy};
+    }
+
+    // if (isKeyPressed(Key::K)) tryMoveView(1, -1);
+    // if (isKeyPressed(Key::H)) tryMoveView(-1, 0);
+    // if (isKeyPressed(Key::J)) tryMoveView(0, 1);
+    // if (isKeyPressed(Key::L)) tryMoveView(1, 0);
+}
+
+void CollisionSystem(Grid& grid) {
+    for (auto& [entity, pos] : positions) {
+        if (movements.count(entity)) {
+            int dest_x = pos.x;
+            int dest_y = pos.y;
+
+            if (!grid.isWalkable(dest_x, dest_y)) {
+                // undo movement if colliding
+                pos.x -= movements[entity].dx;
+                pos.y -= movements[entity].dy;
+
+                movements[entity].dx = 0;
+                movements[entity].dy = 0;
+            }
+        }
+    }
+}
+
+void MovementSystem(std::vector<Entity>& entities) {
+    for (Entity entity : entities) {
+        if (positions.count(entity) && movements.count(entity)) {
+            positions[entity].x += movements[entity].dx;
+            positions[entity].y += movements[entity].dy;
+        }
+    }
+}
+
+void CameraSystem(Entity& player, Camera& camera) {
+    if (positions.count(player)) {
+        Position& playerPos = positions[player];
+        Movement& playerMov = movements[player];
+
+        bool can_move_view_x = true;
+        bool can_move_view_y = true;
+
+        int view_cw = (camera.x2 - camera.x1) / 2;
+        int view_ch = (camera.y2 - camera.y1) / 2;
+
+        bool view_at_left   = camera.x1 <= 0;
+        bool view_at_right  = camera.x2 >= MAP_WIDTH;
+        bool view_at_top    = camera.y1 <= 0;
+        bool view_at_bottom = camera.y2 >= MAP_HEIGHT;
+
+        bool player_left_of_center  = playerPos.x <= camera.x2 / 2;
+        bool player_right_of_center = playerPos.x >= MAP_WIDTH - view_cw;
+        bool player_above_center    = playerPos.y <= camera.y2 / 2;
+        bool player_below_center    = playerPos.y >= MAP_HEIGHT - view_ch;
+
+        if (playerMov.dx < 0 && (view_at_left || (view_at_right && player_right_of_center)))
+            can_move_view_x = false;
+        else if (playerMov.dx > 0 && (view_at_right || (view_at_left && player_left_of_center)))
+            can_move_view_x = false;
+        else if (playerMov.dy < 0 && (view_at_top || (view_at_bottom && player_below_center)))
+            can_move_view_y = false;
+        else if (playerMov.dy > 0 && (view_at_bottom || (view_at_top && player_above_center)))
+            can_move_view_y = false;
+
+        if (can_move_view_x) {
+            int nx1 = camera.x1 + playerMov.dx;
+            int nx2 = camera.x2 + playerMov.dx;
+
+            if (nx1 < 0 || nx2 > MAP_WIDTH) {
+                return;
+            }
+            camera.view.move({
+                playerMov.dx * SPRITE_WIDTH * SCALE_FACTOR.x,
+                0,
+            });
+            ResizeCameraSystem(camera);
+        };
+
+        if (can_move_view_y) {
+            int ny1 = camera.y1 + playerMov.dy;
+            int ny2 = camera.y2 + playerMov.dy;
+
+            if (ny1 < 0 || ny2 > MAP_HEIGHT) {
+                return;
+            }
+            camera.view.move({
+                0,
+                playerMov.dy * SPRITE_HEIGHT * SCALE_FACTOR.y,
+            });
+            ResizeCameraSystem(camera);
+        };
+
+        // if (can_move_view_x || can_move_view_y) {
+        //     int nx1 = camera.x1 + playerMov.dx;
+        //     int nx2 = camera.x2 + playerMov.dx;
+        //     int ny1 = camera.y1 + playerMov.dy;
+        //     int ny2 = camera.y2 + playerMov.dy;
+        //
+        //     if (nx1 < 0 || ny1 < 0 || nx2 > MAP_WIDTH || ny2 > MAP_HEIGHT) {
+        //         return;
+        //     }
+        //     camera.view.move({
+        //         playerMov.dx * SPRITE_WIDTH * SCALE_FACTOR.x,
+        //         playerMov.dy * SPRITE_HEIGHT * SCALE_FACTOR.y,
+        //     });
+        //     ResizeCameraSystem(camera);
+        // };
+    }
+}
+
+void ResizeSystem(Entity& player, Camera& camera, Grid& grid) {
+    // update scale and size factors
+    SIZE_FACTOR = Vector2f{
+        (float)RENDER_WIDTH / CONSOLE_WIDTH,
+        (float)RENDER_HEIGHT / CONSOLE_HEIGHT,
+    };
+    SCALE_FACTOR = Vector2f{
+        SIZE_FACTOR.x / SPRITE_WIDTH,
+        SIZE_FACTOR.y / SPRITE_HEIGHT,
+    };
+
+    // update camera position
+    camera.view.setCenter({
+        positions[player].x * SIZE_FACTOR.x,
+        positions[player].y * SIZE_FACTOR.y - CONSOLE_HEIGHT,
+    });
+    camera.view.setSize(Vector2f{
+        CONSOLE_WIDTH * SIZE_FACTOR.x,
+        CONSOLE_HEIGHT * SIZE_FACTOR.y,
+    });
+    // update camera dimensions
+    ResizeCameraSystem(camera);
+
+    // resize entities
+    for (auto& [entity, renderable] : renderables) {
         Vector2f pos{
-            std::round(size_factor.x * tile.position.x),
-            std::round(size_factor.y * tile.position.y),
+            std::round(SIZE_FACTOR.x * positions[entity].x),
+            std::round(SIZE_FACTOR.y * positions[entity].y),
+        };
+        renderable.sprite.setPosition(pos);
+        renderable.sprite.setScale(SCALE_FACTOR);
+    }
+
+    // resize map tiles
+    for (Tile& tile : grid.tiles) {
+        Vector2f pos{
+            std::round(SIZE_FACTOR.x * tile.position.x),
+            std::round(SIZE_FACTOR.y * tile.position.y),
         };
         tile.sprite.setPosition(pos);
-        tile.sprite.setScale(scale_factor);
-        if (options.is_ascii) {
+        tile.sprite.setScale(SCALE_FACTOR);
+        if (OPTIONS.is_ascii) {
             tile.bg_sprite.setPosition(pos);
+            tile.bg_sprite.setScale(SCALE_FACTOR);
             tile.bg_sprite.setColor(tile.bg);
             tile.sprite.setColor(tile.fg);
         }
     }
 }
 
-void Engine::drawMap() {
-    // draw tiles within the current view
-    for (int x = view_rect.x1; x < view_rect.x2; x++) {
-        for (int y = view_rect.y1; y < view_rect.y2; y++) {
-            int idx   = xy_idx(x, y);
-            Tile tile = grid->tiles[idx];
-            if (options.is_ascii) {
-                renderTexture.draw(tile.bg_sprite);
-            }
-            renderTexture.draw(tile.sprite);
-        }
-    }
-}
+void ResizeCameraSystem(Camera& camera) {
+    Vector2f size   = camera.view.getSize();
+    Vector2f center = camera.view.getCenter();
 
-void Engine::updateScreenSize() {
-    /*
-    Window: 800x600 (Ww x Wh)
-    Console: 80x50 (Cw x Ch)
-    Tileset: 12x12 (Tw x Th)
-
-    Positioning:
-    Ww / Cw = width size factor
-    Wh / Ch = height size factor
-
-    Scaling:
-    (Ww / Cw) / Tw = width scale factor
-    (Wh / Ch) / Th = height scale factor
-    */
-    size_factor = Vector2f{
-        // (float)screen_size.x / CONSOLE_WIDTH,
-        // (float)screen_size.y / CONSOLE_HEIGHT,
-        (float)RENDER_WIDTH / CONSOLE_WIDTH,
-        (float)RENDER_HEIGHT / CONSOLE_HEIGHT,
-    };
-
-    scale_factor = Vector2f{
-        size_factor.x / SPRITE_WIDTH,
-        size_factor.y / SPRITE_HEIGHT,
-    };
-
-    // printf(
-    //     "RENDER WxH (%d, %d)  Screen WxH: (%d, %d)\n", RENDER_WIDTH, RENDER_HEIGHT,
-    //     screen_size.x, screen_size.y
-    // );
-}
-void Engine::updateViewPosition() {
-    view.setCenter({
-        player->position.x * size_factor.x,
-        player->position.y * size_factor.y - CONSOLE_HEIGHT,
-    });
-    view.setSize(Vector2f{
-        CONSOLE_WIDTH * size_factor.x,
-        CONSOLE_HEIGHT * size_factor.y,
-    });
-}
-
-// Recalculate view rect
-void Engine::updateViewDimensions() {
-    Vector2f size   = view.getSize();
-    Vector2f center = view.getCenter();
-
-    screen_size = window.getSize();
-    // printf(
-    //     "SCREEN WxH (%d, %d)  screen WxH: (%d, %d)\n", RENDER_WIDTH, RENDER_HEIGHT,
-    //     screen_size.x, screen_size.y
-    // );
-    // printf("View SIZE: (%f, %f) CENTER (%f, %f)\n", size.x, size.y, center.x, center.y);
-    // printf(
-    //     "Factor Size: (%f, %f)  Scale: (%f, %f)\n", size_factor.x, size_factor.y, scale_factor.x,
-    //     scale_factor.y
-    // );
-
-    int cx = center.x / size_factor.x;
-    int cy = center.y / size_factor.y;
-    int sx = size.x / size_factor.x;
-    int sy = size.y / size_factor.y;
+    int cx = center.x / SIZE_FACTOR.x;
+    int cy = center.y / SIZE_FACTOR.y;
+    int sx = size.x / SIZE_FACTOR.x;
+    int sy = size.y / SIZE_FACTOR.y;
 
     int x1 = std::max(0, cx - sx / 2);
     int y1 = std::max(0, cy - sy / 2);
@@ -234,18 +271,21 @@ void Engine::updateViewDimensions() {
     int x2 = std::min(MAP_WIDTH, x1 + sx);
     int y2 = std::min(MAP_HEIGHT, y1 + sy);
 
-    ViewRect vr = {x1, y1, x2, y2};
+    camera.x1 = x1;
+    camera.x2 = x2;
+    camera.y1 = y1;
+    camera.y2 = y2;
+};
 
-    this->view_rect = vr;
-    // printf("View Rect: x1y1(%d, %d) x2y2(%d, %d)\n\n", vr.x1, vr.y1, vr.x2, vr.y2);
-}
-
-void Engine::swapTilesets() {
-    options.is_ascii = !options.is_ascii;
-    initSpriteSheet(options.is_ascii);
+void SwapTilesetSystem(Entity& player, Camera& camera, Grid& grid) {
+    OPTIONS.is_ascii = !OPTIONS.is_ascii;
+    SpritesheetLoadingSystem(OPTIONS.is_ascii);
     SPRITE_REGISTRY.clear();
-    generateSpritesVector(options.is_ascii);
-    for (Tile& tile : grid->tiles)
-        tile.resetSprite();
-    updateMap();
+    SpriteGenerator(OPTIONS.is_ascii);
+    grid.reloadSprites();
+    for (auto& [entity, renderable] : renderables) {
+        renderable.sprite = *getSpriteTile(renderable.sprite_type);
+    }
+    ResizeSystem(player, camera, grid);
+    // grid.updateMap();
 }

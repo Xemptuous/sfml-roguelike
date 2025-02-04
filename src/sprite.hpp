@@ -116,6 +116,6 @@ static const std::unordered_map<SpriteTiles, sf::Vector2i> ASCII_COORDINATES = {
 
 static std::vector<sf::Sprite> SPRITE_REGISTRY(NUM_SPRITES, sf::Sprite(SPRITE_SHEET));
 
-int initSpriteSheet(bool is_ascii);
-void generateSpritesVector(bool is_ascii);
+int SpritesheetLoadingSystem(bool is_ascii);
+void SpriteGenerator(bool is_ascii);
 sf::Sprite* getSpriteTile(SpriteTiles tile);

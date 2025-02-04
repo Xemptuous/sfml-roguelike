@@ -1,4 +1,5 @@
 #include "engine.hpp"
+#include "grid.hpp"
 #include "sprite.hpp"
 
 #include <SFML/Graphics.hpp>
@@ -12,59 +13,61 @@ extern const int CONSOLE_WIDTH  = 80;
 extern const int CONSOLE_HEIGHT = 45;
 extern const int MAP_WIDTH, MAP_HEIGHT;
 
-const int TARGET_FRAMERATE = 24;
+extern std::unordered_map<Entity, Position> positions;
+extern std::unordered_map<Entity, Movement> movements;
+extern std::unordered_map<Entity, Renderable> renderables;
 
-sf::RenderWindow window;
-sf::RenderTexture renderTexture({RENDER_WIDTH, RENDER_HEIGHT});
 sf::Texture SPRITE_SHEET;
 sf::Image SPRITE_SHEET_IMAGE;
-sf::Font font;
-sf::View view;
+extern Options OPTIONS;
 
-void initWindow() {
+const int TARGET_FRAMERATE = 24;
+
+void parseArgs(int argc, char** argv) {
+    bool is_ascii = false;
+    for (int i = 1; i < argc; i++) {
+        is_ascii = strcmp(argv[i], "--sprites") == 0;
+    }
+    OPTIONS.is_ascii = true;
+}
+
+int main(int argc, char** argv) {
+    // Window setup
+    sf::RenderWindow window;
+    sf::RenderTexture renderTexture({RENDER_WIDTH, RENDER_HEIGHT});
+    sf::View view;
+    sf::Font font;
+
     window.create(
         sf::VideoMode({RENDER_WIDTH, RENDER_HEIGHT}), "My Window", sf::Style::Default,
         sf::State::Windowed
     );
     window.setFramerateLimit(TARGET_FRAMERATE);
-}
 
-Options parseArgs(int argc, char** argv) {
-    bool is_ascii = false;
-    for (int i = 1; i < argc; i++) {
-        is_ascii = strcmp(argv[i], "--sprites") == 0;
-    }
-    return Options{is_ascii};
-}
+    // CLI Args
+    parseArgs(argc, argv);
 
-void draw(Engine* engine) {
-    window.clear();
-    renderTexture.clear();
-
-    engine->drawMap();
-    engine->drawEntities();
-
-    renderTexture.display();
-    const sf::Texture& texture = renderTexture.getTexture();
-    sf::Sprite sprite(texture);
-
-    window.draw(sprite);
-    window.display();
-}
-
-int main(int argc, char** argv) {
-    Options options = parseArgs(argc, argv);
-
-    initWindow();
-    if (auto error_code = initSpriteSheet(options.is_ascii) != 0) {
+    if (auto error_code = SpritesheetLoadingSystem(OPTIONS.is_ascii) != 0) {
         return error_code;
     }
 
-    generateSpritesVector(options.is_ascii);
-    std::unique_ptr<Engine> engine(new Engine(options));
+    // World Setup
+    SpriteGenerator(OPTIONS.is_ascii);
+
+    Entity player = 1;
+
+    positions[player]   = {MAP_WIDTH / 2, MAP_HEIGHT / 2};
+    renderables[player] = Renderable(PlayerMaleStanding);
+    std::vector<Entity> entities;
+    entities.push_back(player);
+
+    Grid grid = Grid();
+    MapGeneratorSystem(grid);
+    BuildingGeneratorSystem(grid);
+    Camera camera = Camera{.view = view};
 
     bool wait = false;
-    draw(engine.get());
+    DrawSystem(window, renderTexture, camera, grid);
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()
@@ -73,22 +76,27 @@ int main(int argc, char** argv) {
             } else if (event->is<sf::Event::KeyPressed>()) {
                 wait = false;
                 using namespace sf::Keyboard;
+                // InputSystem(player);
                 if (isKeyPressed(Key::A)) {
-                    engine->swapTilesets();
+                    SwapTilesetSystem(player, camera, grid);
+                    continue;
                 }
             } else if (event->is<sf::Event::Resized>()) {
-                engine->update();
+                ResizeSystem(player, camera, grid);
                 wait = false;
             }
 
             if (!wait) {
-                engine->handleKey();
+                InputSystem(player);
+                MovementSystem(entities);
+                CollisionSystem(grid);
+                CameraSystem(player, camera);
+                movements.clear();
             }
         }
 
         if (!wait) {
-            renderTexture.setView(view);
-            draw(engine.get());
+            DrawSystem(window, renderTexture, camera, grid);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
