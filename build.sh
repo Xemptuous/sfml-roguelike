@@ -1,8 +1,8 @@
 #!/bin/bash
 
 cmake -B build -G Ninja
+cp build/compile_commands.json ./
 cd build
-cp compile_commands.json ../
 ninja
 echo "Running main..."
 ./bin/main $1
