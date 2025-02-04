@@ -30,3 +30,7 @@
 *.exe
 *.out
 *.app
+
+# Cmake Generated
+compile_commands.json
+build/
