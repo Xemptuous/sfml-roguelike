@@ -34,3 +34,6 @@
 # Cmake Generated
 compile_commands.json
 build/
+
+# Clangd
+.cache/
