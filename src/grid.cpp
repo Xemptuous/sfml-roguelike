@@ -16,7 +16,7 @@ Grid::Grid() {
     this->generateBuildings();
 }
 
-Tile::Tile() : sprite(*getSpriteTile(None)), bg_sprite(*getSpriteTile(Wall1)) {
+Tile::Tile() : sprite(*getSpriteTile(None)), bg_sprite(*getSpriteTile(BrownWall1)) {
     this->tile_type   = TileType::Floor;
     this->sprite_type = SpriteTiles::None;
     this->position    = {0, 0};
@@ -32,7 +32,7 @@ Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype)
       fg(COLOR_ARRAY[rl::Color::Black]),
       bg(COLOR_ARRAY[rl::Color::Black]),
       sprite(*getSpriteTile(stype)),
-      bg_sprite(*getSpriteTile(Wall1)) {};
+      bg_sprite(*getSpriteTile(BrownWall1)) {};
 
 Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg)
     : position(pos),
@@ -41,7 +41,7 @@ Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg)
       fg(COLOR_ARRAY[fg]),
       bg(COLOR_ARRAY[rl::Color::Black]),
       sprite(*getSpriteTile(stype)),
-      bg_sprite(*getSpriteTile(Wall1)) {};
+      bg_sprite(*getSpriteTile(BrownWall1)) {};
 
 Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg, rl::Color bg)
     : position(pos),
@@ -50,11 +50,11 @@ Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg, rl
       fg(COLOR_ARRAY[fg]),
       bg(COLOR_ARRAY[bg]),
       sprite(*getSpriteTile(stype)),
-      bg_sprite(*getSpriteTile(Wall1)) {};
+      bg_sprite(*getSpriteTile(BrownWall1)) {};
 
 void Tile::resetSprite() {
     this->sprite    = *getSpriteTile(this->sprite_type);
-    this->bg_sprite = *getSpriteTile(Wall1);
+    this->bg_sprite = *getSpriteTile(BrownWall1);
 }
 
 std::vector<Tile> Grid::generateMapTiles() {
@@ -108,8 +108,11 @@ bool Building::intersects(Building& r) {
 }
 
 void Grid::generateBuildings() {
+    using namespace rl;
     std::random_device dev;
     std::mt19937 rng(dev());
+    std::uniform_int_distribution<int> floor_gen(0, 4);
+    std::uniform_int_distribution<int> wall_gen(0, 2);
     std::uniform_int_distribution<int> room_size(7, 12);
     std::uniform_int_distribution<int> room_x(0, MAP_WIDTH - 7);
     std::uniform_int_distribution<int> room_y(0, MAP_HEIGHT - 12);
@@ -134,6 +137,8 @@ void Grid::generateBuildings() {
 
         if (to_build) {
             buildings.push_back(b);
+            int floor_type = floor_gen(rng);
+            int wall_type  = wall_gen(rng);
             // build structure
             for (int x = b.x1; x <= b.x2; x++) {
                 for (int y = b.y1; y <= b.y2; y++) {
@@ -143,12 +148,38 @@ void Grid::generateBuildings() {
                     }
                     // if outer edge, make walls
                     if (x == b.x1 || x == b.x2 || y == b.y1 || y == b.y2) {
-                        tiles[xy_idx(x, y)] =
-                            Tile({x, y}, TileType::Wall, SpriteTiles::Wall1, rl::Color::SandyBrown);
+                        switch (wall_type) {
+                            case 0:
+                                tiles[xy_idx(x, y)] =
+                                    Tile({x, y}, Wall, BrownWall1, Color::SaddleBrown);
+                                break;
+                            case 1:
+                                tiles[xy_idx(x, y)] =
+                                    Tile({x, y}, Wall, WoodWall1, Color::SandyBrown);
+                                break;
+                            default:
+                                tiles[xy_idx(x, y)] = Tile({x, y}, Wall, StoneWall1, Color::Silver);
+                                break;
+                        }
                         continue;
                     }
-                    tiles[xy_idx(x, y)] =
-                        Tile({x, y}, TileType::Floor, SpriteTiles::Stone1, rl::Color::Gray);
+                    switch (floor_type) {
+                        case 0:
+                            tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Carpet1, Color::Gray);
+                            break;
+                        case 1:
+                            tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Carpet2, Color::SaddleBrown);
+                            break;
+                        case 2:
+                            tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Carpet3, Color::SaddleBrown);
+                            break;
+                        case 3:
+                            tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Carpet4, Color::SaddleBrown);
+                            break;
+                        default:
+                            tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Stone1, Color::Gray);
+                            break;
+                    }
                 }
             }
             // add a door randomly along an edge of the building
@@ -179,8 +210,9 @@ void Grid::generateBuildings() {
 
                 // Replace the chosen wall tile with a door
                 if (door_x >= 0 && door_x < MAP_WIDTH && door_y >= 0 && door_y < MAP_HEIGHT) {
-                    tiles[xy_idx(door_x, door_y)] =
-                        Tile({door_x, door_y}, TileType::Floor, SpriteTiles::Door1, rl::Color::Tan);
+                    tiles[xy_idx(door_x, door_y)] = Tile(
+                        {door_x, door_y}, TileType::Floor, SpriteTiles::DoorClosed1, rl::Color::Tan
+                    );
                 }
             }
 

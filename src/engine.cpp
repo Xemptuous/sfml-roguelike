@@ -45,7 +45,6 @@ void Engine::handleKey() {
     if (isKeyPressed(Key::Up)) tryMovePlayer(0, -1);
     if (isKeyPressed(Key::Down)) tryMovePlayer(0, 1);
 
-    // FIXME: doesn't work :(
     if (isKeyPressed(Key::K)) tryMoveView(0, -1);
     if (isKeyPressed(Key::H)) tryMoveView(-1, 0);
     if (isKeyPressed(Key::J)) tryMoveView(0, 1);
@@ -128,7 +127,7 @@ void Engine::drawEntities() {
     player->sprite->setPosition(pos);
     player->sprite->setScale(scale_factor);
     if (options.is_ascii) {
-        Sprite* bg = getSpriteTile(SpriteTiles::Wall1);
+        Sprite* bg = getSpriteTile(SpriteTiles::WoodWall1);
         bg->setPosition(pos);
         bg->setColor(sf::Color::Black);
         renderTexture.draw(*bg);
