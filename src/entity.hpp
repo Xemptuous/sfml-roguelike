@@ -14,13 +14,14 @@ const Entity MAX_ENTITIES = 10000;
 struct Position {
     int x, y;
 };
-
 struct Movement {
     int dx, dy;
 };
-
 struct Health {
     int curr, max;
+};
+struct Damage {
+    int min, max;
 };
 
 struct Renderable {
@@ -30,41 +31,42 @@ struct Renderable {
     sf::Color bg;
     int zIndex;
 
-    Renderable()
-        : sprite(*getSpriteTile(None)),
-          sprite_type(None),
-          fg(sf::Color::White),
-          bg(sf::Color::Black),
-          zIndex(1) {}
-    Renderable(SpriteTiles stype)
-        : sprite(*getSpriteTile(stype)),
-          sprite_type(stype),
-          fg(sf::Color::White),
-          bg(sf::Color::Black),
-          zIndex(1) {}
-    Renderable(SpriteTiles stype, sf::Color fg)
-        : sprite(*getSpriteTile(stype)),
-          sprite_type(stype),
-          fg(fg),
-          bg(sf::Color::Black),
-          zIndex(1) {}
-    Renderable(SpriteTiles stype, sf::Color fg, sf::Color bg)
-        : sprite(*getSpriteTile(stype)), sprite_type(stype), fg(fg), bg(bg), zIndex(1) {}
-    Renderable(SpriteTiles stype, sf::Color fg, sf::Color bg, int z)
-        : sprite(*getSpriteTile(stype)), sprite_type(stype), fg(fg), bg(bg), zIndex(z) {}
-    Renderable(SpriteTiles stype, sf::Color fg, int z)
-        : sprite(*getSpriteTile(stype)),
-          sprite_type(stype),
-          fg(fg),
-          bg(sf::Color::Black),
-          zIndex(z) {}
-    Renderable(SpriteTiles stype, int z)
-        : sprite(*getSpriteTile(stype)),
-          sprite_type(stype),
-          fg(sf::Color::White),
-          bg(sf::Color::Black),
-          zIndex(z) {}
+    Renderable() :
+        sprite(*getSpriteTile(None)),
+        sprite_type(None),
+
+        fg(sf::Color::White),
+        bg(sf::Color::Black),
+        zIndex(1) {}
+    Renderable(SpriteTiles stype) :
+        sprite(*getSpriteTile(stype)),
+        sprite_type(stype),
+        fg(sf::Color::White),
+        bg(sf::Color::Black),
+        zIndex(1) {}
+    Renderable(SpriteTiles stype, sf::Color fg) :
+        sprite(*getSpriteTile(stype)),
+        sprite_type(stype),
+        fg(fg),
+        bg(sf::Color::Black),
+        zIndex(1) {}
+    Renderable(SpriteTiles stype, sf::Color fg, sf::Color bg) :
+        sprite(*getSpriteTile(stype)), sprite_type(stype), fg(fg), bg(bg), zIndex(1) {}
+    Renderable(SpriteTiles stype, sf::Color fg, sf::Color bg, int z) :
+        sprite(*getSpriteTile(stype)), sprite_type(stype), fg(fg), bg(bg), zIndex(z) {}
+    Renderable(SpriteTiles stype, sf::Color fg, int z) :
+        sprite(*getSpriteTile(stype)),
+        sprite_type(stype),
+        fg(fg),
+        bg(sf::Color::Black),
+        zIndex(z) {}
+    Renderable(SpriteTiles stype, int z) :
+        sprite(*getSpriteTile(stype)),
+        sprite_type(stype),
+        fg(sf::Color::White),
+        bg(sf::Color::Black),
+        zIndex(z) {}
 };
 
 void EntityGeneratorSystem(ECS&);
-void AIBehaviorSystem(ECS&);
+void AIMovementSystem(ECS&);

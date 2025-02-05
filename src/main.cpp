@@ -59,14 +59,15 @@ int main(int argc, char** argv) {
     ecs.add_component(player, Position{MAP_WIDTH / 2, MAP_HEIGHT / 2});
     ecs.add_component(player, Renderable(PlayerMaleStanding));
     ecs.add_component(player, Movement{0, 0});
+    ecs.add_component(player, Health{100, 100});
+    ecs.add_component(player, Damage{10, 10});
 
-    // EntityGeneratorSystem(entityManager);
+    EntityGeneratorSystem(ecs);
 
     // Create Map
     Grid grid = Grid{};
     MapGeneratorSystem(grid);
     BuildingGeneratorSystem(grid);
-    EntityGeneratorSystem(ecs);
 
     bool wait = false;
     DrawSystem(window, renderTexture, camera, grid, ecs);
@@ -93,7 +94,7 @@ int main(int argc, char** argv) {
                 printf("INPUT SYSTEM\n");
                 InputSystem(player, ecs);
                 printf("MOVEMENT SYSTEM\n");
-                AIBehaviorSystem(ecs);
+                AIMovementSystem(ecs);
                 MovementSystem(ecs);
                 printf("COLLISION SYSTEM\n");
                 CollisionSystem(grid, ecs);

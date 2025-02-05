@@ -28,26 +28,76 @@ void EntityGeneratorSystem(ECS& ecs) {
         Entity entity = ecs.create_entity();
         ecs.add_component(entity, Position{randx(rng), randy(rng)});
         ecs.add_component(entity, Movement{0, 0});
-        Renderable renderable;
-        switch (picker(rng)) {
-            case 0:  renderable = Renderable(GoblinUnarmed, getColor(Green)); break;
-            case 1:  renderable = Renderable(GoblinSword, getColor(Green)); break;
-            case 2:  renderable = Renderable(GoblinBow, getColor(Green)); break;
-            case 3:  renderable = Renderable(BarbarianUnarmed, getColor(SandyBrown)); break;
-            case 4:  renderable = Renderable(BarbarianSword, getColor(SandyBrown)); break;
-            case 5:  renderable = Renderable(BarbarianBow, getColor(SandyBrown)); break;
-            case 6:  renderable = Renderable(ReptileUnarmed, getColor(DarkGreen)); break;
-            case 7:  renderable = Renderable(ReptileSword, getColor(DarkGreen)); break;
-            case 8:  renderable = Renderable(ReptileBow, getColor(DarkGreen)); break;
-            case 9:  renderable = Renderable(DemonUnarmed, getColor(Red)); break;
-            default: renderable = Renderable(DemonAxe, getColor(Red)); break;
+        {
+            Renderable render;
+            Health health;
+            Damage damage;
+            switch (picker(rng)) {
+                case 0:
+                    render = Renderable(GoblinUnarmed, getColor(Green));
+                    health = {10, 10};
+                    damage = {1, 1};
+                    break;
+                case 1:
+                    render = Renderable(GoblinSword, getColor(Green));
+                    health = {10, 10};
+                    damage = {2, 3};
+                    break;
+                case 2:
+                    render = Renderable(GoblinBow, getColor(Green));
+                    health = {10, 10};
+                    damage = {3, 4};
+                    break;
+                case 3:
+                    render = Renderable(BarbarianUnarmed, getColor(SandyBrown));
+                    health = {15, 10};
+                    damage = {2, 2};
+                    break;
+                case 4:
+                    render = Renderable(BarbarianSword, getColor(SandyBrown));
+                    health = {15, 10};
+                    damage = {3, 4};
+                    break;
+                case 5:
+                    render = Renderable(BarbarianBow, getColor(SandyBrown));
+                    health = {15, 10};
+                    damage = {4, 4};
+                    break;
+                case 6:
+                    render = Renderable(ReptileUnarmed, getColor(DarkGreen));
+                    health = {20, 10};
+                    damage = {2, 2};
+                    break;
+                case 7:
+                    render = Renderable(ReptileSword, getColor(DarkGreen));
+                    health = {20, 10};
+                    damage = {3, 4};
+                    break;
+                case 8:
+                    render = Renderable(ReptileBow, getColor(DarkGreen));
+                    health = {20, 10};
+                    damage = {4, 4};
+                    break;
+                case 9:
+                    render = Renderable(DemonUnarmed, getColor(Red));
+                    health = {50, 10};
+                    damage = {4, 4};
+                    break;
+                default:
+                    render = Renderable(DemonAxe, getColor(Red));
+                    health = {50, 10};
+                    damage = {7, 7};
+                    break;
+            }
+            ecs.add_component(entity, render);
+            ecs.add_component(entity, health);
+            ecs.add_component(entity, damage);
         }
-        ecs.add_component(entity, renderable);
         ecs.add_component(entity, AIBehavior::Standard);
     }
 }
 
-void AIBehaviorSystem(ECS& ecs) {
+void AIMovementSystem(ECS& ecs) {
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<int> std_mov(-1, 1);
