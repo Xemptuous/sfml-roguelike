@@ -1,10 +1,9 @@
-#include "entity.hpp"
+#pragma once
+#include "ecs.hpp"
 #include "grid.hpp"
-#include "sprite.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/View.hpp>
-#include <unordered_set>
 
 struct Options {
     bool is_ascii;
@@ -66,16 +65,16 @@ struct Renderable {
 };
 
 // Systems
-void MovementSystem(std::unordered_set<Entity>&);
+void MovementSystem(ECS&);
 
-void DrawSystem(RenderWindow& window, RenderTexture& renderTexture, Camera& camera, Grid& grid);
-void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid);
-void CameraSystem(Entity& player, Camera& camera);
+void DrawSystem(RenderWindow&, RenderTexture&, Camera&, Grid&, ECS&);
+void RenderSystem(RenderTexture&, Camera&, Grid&, ECS&);
+void CameraSystem(Entity& player, Camera&, ECS&);
 
-void InputSystem(Entity& player);
-void CollisionSystem(Grid& grid);
+void InputSystem(Entity& player, ECS&);
+void CollisionSystem(Grid&, ECS&);
 
-void ResizeSystem(Entity& player, Camera& camera, Grid& grid);
-void ResizeCameraSystem(Camera& camera);
+void ResizeSystem(Entity& player, Camera&, Grid&, ECS&);
+void ResizeCameraSystem(Camera&);
 
-void SwapTilesetSystem(Entity& player, Camera& camera, Grid& grid);
+void SwapTilesetSystem(Entity& player, Camera&, Grid&, ECS&);

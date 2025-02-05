@@ -1,7 +1,4 @@
 #include "engine.hpp"
-#include "entity.hpp"
-#include "grid.hpp"
-#include "sprite.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <cstdio>
@@ -14,9 +11,9 @@ extern const int CONSOLE_WIDTH  = 80;
 extern const int CONSOLE_HEIGHT = 45;
 extern const int MAP_WIDTH, MAP_HEIGHT;
 
-extern std::unordered_map<Entity, Position> positions;
-extern std::unordered_map<Entity, Movement> movements;
-extern std::unordered_map<Entity, Renderable> renderables;
+// extern std::unordered_map<Entity, Position> positions;
+// extern std::unordered_map<Entity, Movement> movements;
+// extern std::unordered_map<Entity, Renderable> renderables;
 
 sf::Texture SPRITE_SHEET;
 sf::Image SPRITE_SHEET_IMAGE;
@@ -55,13 +52,14 @@ int main(int argc, char** argv) {
     SpriteGenerator();
 
     // Create Entities
-    EntityManager entityManager;
+    ECS ecs = ECS{};
 
-    Entity player       = entityManager.create_entity();
-    positions[player]   = {MAP_WIDTH / 2, MAP_HEIGHT / 2};
-    renderables[player] = Renderable(PlayerMaleStanding);
+    Entity player = ecs.create_entity();
+    ecs.add_component(player, Position{MAP_WIDTH / 2, MAP_HEIGHT / 2});
+    ecs.add_component(player, Renderable(PlayerMaleStanding));
+    ecs.add_component(player, Movement{0, 0});
 
-    EntityGeneratorSystem(entityManager);
+    // EntityGeneratorSystem(entityManager);
 
     // Create Map
     Grid grid = Grid{};
@@ -69,7 +67,8 @@ int main(int argc, char** argv) {
     BuildingGeneratorSystem(grid);
 
     bool wait = false;
-    DrawSystem(window, renderTexture, camera, grid);
+    printf("DRAW SYSTEM\n");
+    DrawSystem(window, renderTexture, camera, grid, ecs);
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -79,27 +78,37 @@ int main(int argc, char** argv) {
             } else if (event->is<sf::Event::KeyPressed>()) {
                 wait = false;
                 using namespace sf::Keyboard;
-                // InputSystem(player);
                 if (isKeyPressed(Key::A)) {
-                    SwapTilesetSystem(player, camera, grid);
+                    SwapTilesetSystem(player, camera, grid, ecs);
                     continue;
                 }
             } else if (event->is<sf::Event::Resized>()) {
-                ResizeSystem(player, camera, grid);
+                printf("RESIZE SYSTEM\n");
+                ResizeSystem(player, camera, grid, ecs);
                 wait = false;
             }
 
             if (!wait) {
-                InputSystem(player);
-                MovementSystem(entityManager.active_entities);
-                CollisionSystem(grid);
-                CameraSystem(player, camera);
-                movements.clear();
+                printf("INPUT SYSTEM\n");
+                InputSystem(player, ecs);
+                printf("MOVEMENT SYSTEM\n");
+                MovementSystem(ecs);
+                printf("COLLISION SYSTEM\n");
+                CollisionSystem(grid, ecs);
+                printf("CAMERA SYSTEM\n");
+                CameraSystem(player, camera, ecs);
+                printf("REMOVE MOVEMENTS\n");
+                for (Entity entity : ecs.entities()) {
+                    Movement* mov = ecs.get_component<Movement>(entity);
+                    mov->dx       = 0;
+                    mov->dy       = 0;
+                }
             }
         }
 
         if (!wait) {
-            DrawSystem(window, renderTexture, camera, grid);
+            printf("DRAW SYSTEM\n");
+            DrawSystem(window, renderTexture, camera, grid, ecs);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));

@@ -1,6 +1,4 @@
 #pragma once
-#include "sprite.hpp"
-
 #include <SFML/Graphics.hpp>
 #include <queue>
 #include <unordered_set>
@@ -25,7 +23,7 @@ struct EntityManager {
     std::unordered_set<Entity> active_entities;
 
     Entity create_entity();
-    void destroy_entity(Entity entity);
+    void destroy_entity(Entity);
     bool is_active(Entity entity) const {
         return active_entities.find(entity) != active_entities.end();
     }

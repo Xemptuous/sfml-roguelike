@@ -1,29 +1,10 @@
 #include "entity.hpp"
 
-#include "engine.hpp"
-#include "grid.hpp"
-#include "sprite.hpp"
-
-#include <cmath>
-
 extern const int MAP_WIDTH, MAP_HEIGHT;
 
-extern std::unordered_map<Entity, Position> positions;
-extern std::unordered_map<Entity, Renderable> renderables;
-std::unordered_map<Entity, Health> healths;
-
-// Player::Player(SpriteTiles tile)
-//     : sprite(*getSpriteTile(tile)), sprite_type(tile), position({MAP_WIDTH / 2, MAP_HEIGHT / 2})
-//     {}
-
-void EntityGeneratorSystem(EntityManager& em) {
-    // // create Player
-    // Entity player       = em.create_entity();
-    // positions[player]   = {MAP_WIDTH / 2, MAP_HEIGHT / 2};
-    // renderables[player] = Renderable(PlayerMaleStanding);
-
-    // create entities
-}
+// extern std::unordered_map<Entity, Position> positions;
+// extern std::unordered_map<Entity, Renderable> renderables;
+// std::unordered_map<Entity, Health> healths;
 
 Entity EntityManager::create_entity() {
     Entity id;
