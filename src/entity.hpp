@@ -1,47 +1,70 @@
 #pragma once
+#include "ecs.hpp"
+#include "sprite.hpp"
+
 #include <SFML/Graphics.hpp>
-#include <queue>
-#include <unordered_set>
 
 using namespace sf;
 
-using Entity = std::uint64_t;
+using Entity = uint64_t;
 
 const Entity MAX_ENTITIES = 10000;
 
 // Components
+struct Position {
+    int x, y;
+};
+
+struct Movement {
+    int dx, dy;
+};
+
 struct Health {
     int curr, max;
 };
 
-struct PlayerControlled {};
-struct AIControlled {};
+struct Renderable {
+    sf::Sprite sprite;
+    SpriteTiles sprite_type;
+    sf::Color fg;
+    sf::Color bg;
+    int zIndex;
 
-struct EntityManager {
-    Entity next_entity_id = 0;
-    std::queue<Entity> recycled_ids;
-    std::unordered_set<Entity> active_entities;
-
-    Entity create_entity();
-    void destroy_entity(Entity);
-    bool is_active(Entity entity) const {
-        return active_entities.find(entity) != active_entities.end();
-    }
+    Renderable()
+        : sprite(*getSpriteTile(None)),
+          sprite_type(None),
+          fg(sf::Color::White),
+          bg(sf::Color::Black),
+          zIndex(1) {}
+    Renderable(SpriteTiles stype)
+        : sprite(*getSpriteTile(stype)),
+          sprite_type(stype),
+          fg(sf::Color::White),
+          bg(sf::Color::Black),
+          zIndex(1) {}
+    Renderable(SpriteTiles stype, sf::Color fg)
+        : sprite(*getSpriteTile(stype)),
+          sprite_type(stype),
+          fg(fg),
+          bg(sf::Color::Black),
+          zIndex(1) {}
+    Renderable(SpriteTiles stype, sf::Color fg, sf::Color bg)
+        : sprite(*getSpriteTile(stype)), sprite_type(stype), fg(fg), bg(bg), zIndex(1) {}
+    Renderable(SpriteTiles stype, sf::Color fg, sf::Color bg, int z)
+        : sprite(*getSpriteTile(stype)), sprite_type(stype), fg(fg), bg(bg), zIndex(z) {}
+    Renderable(SpriteTiles stype, sf::Color fg, int z)
+        : sprite(*getSpriteTile(stype)),
+          sprite_type(stype),
+          fg(fg),
+          bg(sf::Color::Black),
+          zIndex(z) {}
+    Renderable(SpriteTiles stype, int z)
+        : sprite(*getSpriteTile(stype)),
+          sprite_type(stype),
+          fg(sf::Color::White),
+          bg(sf::Color::Black),
+          zIndex(z) {}
 };
 
-// struct Player {
-//     Sprite sprite;
-//     SpriteTiles sprite_type;
-//     Vector2i position;
-//
-//     Player(SpriteTiles tile);
-// };
-
-// struct Monster {
-//     Sprite* sprite;
-//     Vector2i position;
-// };
-
-// Systems
-void EntityGeneratorSystem(EntityManager&);
-// void HealthSystem();
+void EntityGeneratorSystem(ECS&);
+void AIBehaviorSystem(ECS&);

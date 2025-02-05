@@ -1,5 +1,6 @@
 #include "engine.hpp"
 
+#include "entity.hpp"
 #include "grid.hpp"
 #include "sprite.hpp"
 
@@ -71,12 +72,11 @@ void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS&
         };
         renderable.sprite.setPosition(posv);
         renderable.sprite.setScale(SCALE_FACTOR);
-        if (OPTIONS.is_ascii) {
-            Sprite* bg = getSpriteTile(SpriteTiles::WoodWall1);
-            bg->setPosition(posv);
-            bg->setColor(sf::Color::Black);
-            renderTexture.draw(*bg);
-        }
+        Sprite* bg = getSpriteTile(OPTIONS.is_ascii ? BrownWall1 : Block);
+        bg->setPosition(posv);
+        bg->setScale(SCALE_FACTOR);
+        bg->setColor(sf::Color::Black);
+        renderTexture.draw(*bg);
         renderTexture.draw(renderable.sprite);
     }
 }
@@ -222,6 +222,9 @@ void ResizeSystem(Entity& player, Camera& camera, Grid& grid, ECS& ecs) {
         Renderable* renderable = ecs.get_component<Renderable>(entity);
         renderable->sprite.setPosition(pos);
         renderable->sprite.setScale(SCALE_FACTOR);
+        if (OPTIONS.is_ascii) {
+            renderable->sprite.setColor(renderable->fg);
+        }
     }
 
     // resize map tiles

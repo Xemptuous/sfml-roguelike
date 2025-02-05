@@ -1,5 +1,8 @@
+#pragma once
 #include "component.hpp"
-#include "entity.hpp"
+#include "entity_manager.hpp"
+
+#include <unordered_set>
 
 struct ECS {
     EntityManager entity_manager;

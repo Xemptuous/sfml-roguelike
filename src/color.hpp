@@ -11,6 +11,7 @@ enum Color {
     Cyan,
     Magenta,
 
+    BlackOpaque,
     Silver,
     Gray,
     DarkRed,
@@ -25,7 +26,7 @@ enum Color {
 };
 }
 
-static const sf::Color COLOR_ARRAY[19]{
+static const sf::Color COLOR_ARRAY[20]{
     sf::Color::White,
     sf::Color::Black,
     sf::Color::Red,
@@ -35,6 +36,7 @@ static const sf::Color COLOR_ARRAY[19]{
     sf::Color::Cyan,
     sf::Color::Magenta,
 
+    sf::Color(0, 0, 0, 128),       // BlackOpaque
     sf::Color(192, 192, 192, 255), // Silver
     sf::Color(64, 64, 64, 255),    // Gray
     sf::Color(64, 0, 0, 255),      // Dark Red
@@ -48,3 +50,7 @@ static const sf::Color COLOR_ARRAY[19]{
     sf::Color(210, 180, 140, 255), // Tan
     sf::Color(139, 69, 19, 255),   // SaddleBrown
 };
+
+static sf::Color getColor(rl::Color color) {
+    return COLOR_ARRAY[color];
+}

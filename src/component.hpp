@@ -1,5 +1,7 @@
 #pragma once
-#include "entity.hpp"
+#include <cstdint>
+
+using Entity = std::uint64_t;
 
 #include <cassert>
 #include <memory>

@@ -10,7 +10,9 @@ extern sf::Texture SPRITE_SHEET;
 extern sf::Image SPRITE_SHEET_IMAGE;
 
 enum SpriteTiles : size_t {
+    // Inorganic Static
     None,
+    Block,
     BrownWall1,
     BrownWall2,
     BrownWall3,
@@ -32,9 +34,8 @@ enum SpriteTiles : size_t {
     Carpet2,
     Carpet3,
     Carpet4,
-    PlayerMaleStanding,
-    PlayerMaleWalking1,
-    PlayerMaleWalking2,
+
+    // Organic Static
     Grass1,
     Grass2,
     DimGrass1,
@@ -45,14 +46,32 @@ enum SpriteTiles : size_t {
     Mushroom2,
     Tree1,
     Tree2,
-    COUNT
+
+    // Entities
+    PlayerMaleStanding,
+    PlayerMaleWalking1,
+    PlayerMaleWalking2,
+    GoblinUnarmed,
+    GoblinSword,
+    GoblinBow,
+    BarbarianUnarmed,
+    BarbarianSword,
+    BarbarianBow,
+    ReptileUnarmed,
+    ReptileSword,
+    ReptileBow,
+    DemonUnarmed,
+    DemonAxe,
+    COUNT,
 };
 
 constexpr size_t NUM_SPRITES = static_cast<size_t>(SpriteTiles::COUNT);
 
 static const std::unordered_map<SpriteTiles, sf::Vector2i> SPRITE_COORDINATES = {
     // (x, y) from upperleft
+    // Inorganic Static
     {None,               sf::Vector2i({17, 0})},
+    {Block,              sf::Vector2i({9, 41})},
     {BrownWall1,         sf::Vector2i({0, 0}) },
     {BrownWall2,         sf::Vector2i({1, 0}) },
     {BrownWall3,         sf::Vector2i({2, 0}) },
@@ -74,7 +93,8 @@ static const std::unordered_map<SpriteTiles, sf::Vector2i> SPRITE_COORDINATES = 
     {Carpet2,            sf::Vector2i({2, 6}) },
     {Carpet3,            sf::Vector2i({8, 5}) },
     {Carpet4,            sf::Vector2i({8, 6}) },
-    {PlayerMaleStanding, sf::Vector2i({0, 16})},
+
+    // Organic Static
     {Grass1,             sf::Vector2i({3, 9}) },
     {Grass2,             sf::Vector2i({4, 9}) },
     {DimGrass1,          sf::Vector2i({15, 5})},
@@ -85,23 +105,39 @@ static const std::unordered_map<SpriteTiles, sf::Vector2i> SPRITE_COORDINATES = 
     {Mushroom2,          sf::Vector2i({3, 10})},
     {Tree1,              sf::Vector2i({4, 10})},
     {Tree2,              sf::Vector2i({5, 10})},
+
+    // Entities
+    {PlayerMaleStanding, sf::Vector2i({0, 16})},
+    {GoblinUnarmed,      sf::Vector2i({26, 2})},
+    {GoblinSword,        sf::Vector2i({27, 2})},
+    {GoblinBow,          sf::Vector2i({28, 2})},
+    {BarbarianUnarmed,   sf::Vector2i({26, 3})},
+    {BarbarianSword,     sf::Vector2i({27, 3})},
+    {BarbarianBow,       sf::Vector2i({28, 3})},
+    {ReptileUnarmed,     sf::Vector2i({26, 4})},
+    {ReptileSword,       sf::Vector2i({28, 4})},
+    {ReptileBow,         sf::Vector2i({29, 4})},
+    {DemonUnarmed,       sf::Vector2i({26, 5})},
+    {DemonAxe,           sf::Vector2i({27, 5})},
 };
 
 static const std::unordered_map<SpriteTiles, sf::Vector2i> ASCII_COORDINATES = {
     // (x, y) from upperleft
+    // Inorganic Static
     {None,               sf::Vector2i({17, 0}) },
     {BrownWall1,         sf::Vector2i({11, 13})},
     {WoodWall1,          sf::Vector2i({11, 13})},
     {StoneWall1,         sf::Vector2i({11, 13})},
     {DoorClosed1,        sf::Vector2i({11, 2}) },
     {Stone1,             sf::Vector2i({14, 2}) },
-    {Stone2,             sf::Vector2i({14, 2}) },
     {Carpet1,            sf::Vector2i({14, 2}) },
+    {Stone2,             sf::Vector2i({14, 2}) },
     {Carpet2,            sf::Vector2i({14, 2}) },
     {Carpet3,            sf::Vector2i({14, 2}) },
     {Carpet4,            sf::Vector2i({14, 2}) },
     {Wood1,              sf::Vector2i({14, 2}) },
-    {PlayerMaleStanding, sf::Vector2i({0, 4})  },
+
+    // Organic Static
     {Grass1,             sf::Vector2i({12, 2}) },
     {Grass2,             sf::Vector2i({14, 2}) },
     {DimGrass1,          sf::Vector2i({12, 2}) },
@@ -112,6 +148,20 @@ static const std::unordered_map<SpriteTiles, sf::Vector2i> ASCII_COORDINATES = {
     {Mushroom2,          sf::Vector2i({14, 2}) },
     {Tree1,              sf::Vector2i({11, 2}) },
     {Tree2,              sf::Vector2i({11, 2}) },
+
+    // Entities
+    {PlayerMaleStanding, sf::Vector2i({0, 4})  },
+    {GoblinUnarmed,      sf::Vector2i({7, 6})  },
+    {GoblinSword,        sf::Vector2i({7, 6})  },
+    {GoblinBow,          sf::Vector2i({7, 6})  },
+    {BarbarianUnarmed,   sf::Vector2i({2, 6})  },
+    {BarbarianSword,     sf::Vector2i({2, 6})  },
+    {BarbarianBow,       sf::Vector2i({2, 6})  },
+    {ReptileUnarmed,     sf::Vector2i({12, 6}) },
+    {ReptileSword,       sf::Vector2i({12, 6}) },
+    {ReptileBow,         sf::Vector2i({12, 6}) },
+    {DemonUnarmed,       sf::Vector2i({4, 6})  },
+    {DemonAxe,           sf::Vector2i({4, 6})  },
 };
 
 static std::vector<sf::Sprite> SPRITE_REGISTRY(NUM_SPRITES, sf::Sprite(SPRITE_SHEET));

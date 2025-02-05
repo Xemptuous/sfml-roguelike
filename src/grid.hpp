@@ -7,10 +7,6 @@
 #include <SFML/Graphics/Sprite.hpp>
 #include <vector>
 
-struct Position {
-    int x;
-    int y;
-};
 enum TileType {
     Wall,
     Floor,

@@ -1,4 +1,5 @@
 #include "engine.hpp"
+#include "entity.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <cstdio>
@@ -65,9 +66,9 @@ int main(int argc, char** argv) {
     Grid grid = Grid{};
     MapGeneratorSystem(grid);
     BuildingGeneratorSystem(grid);
+    EntityGeneratorSystem(ecs);
 
     bool wait = false;
-    printf("DRAW SYSTEM\n");
     DrawSystem(window, renderTexture, camera, grid, ecs);
 
     while (window.isOpen()) {
@@ -92,6 +93,7 @@ int main(int argc, char** argv) {
                 printf("INPUT SYSTEM\n");
                 InputSystem(player, ecs);
                 printf("MOVEMENT SYSTEM\n");
+                AIBehaviorSystem(ecs);
                 MovementSystem(ecs);
                 printf("COLLISION SYSTEM\n");
                 CollisionSystem(grid, ecs);
@@ -110,6 +112,7 @@ int main(int argc, char** argv) {
             printf("DRAW SYSTEM\n");
             DrawSystem(window, renderTexture, camera, grid, ecs);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            wait = true;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
