@@ -21,7 +21,7 @@ Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype)
     : position(pos),
       tile_type(ttype),
       sprite_type(stype),
-      fg(COLOR_ARRAY[rl::Color::Black]),
+      fg(COLOR_ARRAY[rl::Color::White]),
       bg(COLOR_ARRAY[rl::Color::Black]),
       sprite(*getSpriteTile(stype)),
       bg_sprite(*getSpriteTile(BrownWall1)) {};
@@ -49,11 +49,13 @@ void Tile::resetSprite() {
     this->bg_sprite = *getSpriteTile(BrownWall1);
 }
 
-Grid::Grid() : tiles(std::vector<Tile>(MAP_WIDTH * MAP_HEIGHT, Tile())) {};
-
 bool Building::intersects(Building& r) {
     const int b = 2; // buffer between buildings (+1)
     return x1 < r.x2 + b && x2 > r.x1 - b && y1 < r.y2 + b && y2 > r.y1 - b;
+}
+
+Grid::Grid() : tiles(std::vector<Tile>{}) {
+    tiles.reserve(MAP_WIDTH * MAP_HEIGHT);
 }
 
 bool Grid::isWalkable(int x, int y) {
@@ -70,8 +72,6 @@ void Grid::reloadSprites() {
 // Systems
 void MapGeneratorSystem(Grid& grid) {
     int n = MAP_HEIGHT * MAP_WIDTH;
-    grid.tiles.clear();
-    grid.tiles.reserve(n);
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<int> picker(0, 80);

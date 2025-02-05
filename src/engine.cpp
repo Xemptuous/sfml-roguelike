@@ -1,10 +1,12 @@
 #include "engine.hpp"
 
+#include "grid.hpp"
 #include "sprite.hpp"
 
 #include <SFML/Window/Window.hpp>
 #include <algorithm>
 #include <cmath>
+#include <unordered_set>
 
 extern int MAP_WIDTH, MAP_HEIGHT;
 extern int SPRITE_WIDTH, SPRITE_HEIGHT;
@@ -24,8 +26,8 @@ std::unordered_map<Entity, Renderable> renderables{};
 void DrawSystem(RenderWindow& window, RenderTexture& renderTexture, Camera& camera, Grid& grid) {
     // printf("DrawSystem\n");
     window.clear();
-    renderTexture.setView(camera.view);
     renderTexture.clear();
+    renderTexture.setView(camera.view);
 
     RenderSystem(renderTexture, camera, grid);
 
@@ -121,7 +123,7 @@ void CollisionSystem(Grid& grid) {
     }
 }
 
-void MovementSystem(std::vector<Entity>& entities) {
+void MovementSystem(std::unordered_set<Entity>& entities) {
     for (Entity entity : entities) {
         if (positions.count(entity) && movements.count(entity)) {
             positions[entity].x += movements[entity].dx;
@@ -279,9 +281,9 @@ void ResizeCameraSystem(Camera& camera) {
 
 void SwapTilesetSystem(Entity& player, Camera& camera, Grid& grid) {
     OPTIONS.is_ascii = !OPTIONS.is_ascii;
-    SpritesheetLoadingSystem(OPTIONS.is_ascii);
+    SpritesheetLoadingSystem();
     SPRITE_REGISTRY.clear();
-    SpriteGenerator(OPTIONS.is_ascii);
+    SpriteGenerator();
     grid.reloadSprites();
     for (auto& [entity, renderable] : renderables) {
         renderable.sprite = *getSpriteTile(renderable.sprite_type);

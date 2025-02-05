@@ -1,22 +1,26 @@
 #include "sprite.hpp"
 
+#include "engine.hpp"
+
 extern const int SPRITE_WIDTH  = 12;
 extern const int SPRITE_HEIGHT = 12;
 // extern sf::Font font;
 
+extern Options OPTIONS;
+
 using namespace sf;
 
-int SpritesheetLoadingSystem(bool is_ascii) {
-    auto sprite_type = is_ascii ? "../include/alloy_curses_12x12.png"
-                                : "../include/urizen_onebit_tileset__v1d1.png";
+int SpritesheetLoadingSystem() {
+    auto sprite_type = OPTIONS.is_ascii ? "../include/alloy_curses_12x12.png"
+                                        : "../include/urizen_onebit_tileset__v1d1.png";
     ;
     if (!SPRITE_SHEET_IMAGE.loadFromFile(sprite_type)) {
         printf("Could not load sprite sheet!\n");
         return 2;
     }
     // transparency layer
-    is_ascii ? SPRITE_SHEET_IMAGE.createMaskFromColor({255, 0, 255, 255})
-             : SPRITE_SHEET_IMAGE.createMaskFromColor({0, 0, 0, 255});
+    OPTIONS.is_ascii ? SPRITE_SHEET_IMAGE.createMaskFromColor({255, 0, 255, 255})
+                     : SPRITE_SHEET_IMAGE.createMaskFromColor({0, 0, 0, 255});
 
     if (!SPRITE_SHEET.loadFromImage(SPRITE_SHEET_IMAGE)) {
         printf("Could not load sprite sheet!\n");
@@ -30,8 +34,8 @@ int SpritesheetLoadingSystem(bool is_ascii) {
     return 0;
 }
 
-void SpriteGenerator(bool is_ascii) {
-    auto sprites = is_ascii ? ASCII_COORDINATES : SPRITE_COORDINATES;
+void SpriteGenerator() {
+    auto sprites = OPTIONS.is_ascii ? ASCII_COORDINATES : SPRITE_COORDINATES;
 
     for (const auto& pair : sprites) {
         SpriteTiles tile_type = pair.first;
@@ -39,7 +43,7 @@ void SpriteGenerator(bool is_ascii) {
         Vector2i sprite_coord = pair.second;
 
         // +1 to account for initial border
-        Vector2i coords = is_ascii ? Vector2i{
+        Vector2i coords = OPTIONS.is_ascii ? Vector2i{
                 SPRITE_WIDTH * sprite_coord.x,
                 SPRITE_HEIGHT * sprite_coord.y,
             } : Vector2i{

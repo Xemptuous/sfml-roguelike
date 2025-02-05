@@ -4,10 +4,22 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/View.hpp>
+#include <unordered_set>
 
-// Components
 struct Options {
     bool is_ascii;
+};
+
+struct Movement {
+    int dx, dy;
+};
+
+struct Camera {
+    sf::View view;
+    int x1; // Top left
+    int y1; // Top Left
+    int x2; // Bottom Right
+    int y2; // Bottom Right
 };
 
 struct Renderable {
@@ -53,20 +65,8 @@ struct Renderable {
           zIndex(z) {}
 };
 
-struct Camera {
-    sf::View view;
-    int x1; // Top left
-    int y1; // Top Left
-    int x2; // Bottom Right
-    int y2; // Bottom Right
-};
-
-struct Movement {
-    int dx, dy;
-};
-
 // Systems
-void MovementSystem(std::vector<Entity>& entities);
+void MovementSystem(std::unordered_set<Entity>&);
 
 void DrawSystem(RenderWindow& window, RenderTexture& renderTexture, Camera& camera, Grid& grid);
 void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid);

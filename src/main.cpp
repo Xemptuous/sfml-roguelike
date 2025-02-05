@@ -1,4 +1,5 @@
 #include "engine.hpp"
+#include "entity.hpp"
 #include "grid.hpp"
 #include "sprite.hpp"
 
@@ -32,11 +33,12 @@ void parseArgs(int argc, char** argv) {
 }
 
 int main(int argc, char** argv) {
+    // CLI Args
+    parseArgs(argc, argv);
+
     // Window setup
     sf::RenderWindow window;
     sf::RenderTexture renderTexture({RENDER_WIDTH, RENDER_HEIGHT});
-    sf::View view;
-    sf::Font font;
 
     window.create(
         sf::VideoMode({RENDER_WIDTH, RENDER_HEIGHT}), "My Window", sf::Style::Default,
@@ -44,30 +46,31 @@ int main(int argc, char** argv) {
     );
     window.setFramerateLimit(TARGET_FRAMERATE);
 
-    // CLI Args
-    parseArgs(argc, argv);
+    Camera camera = Camera{.view = sf::View()};
 
-    if (auto error_code = SpritesheetLoadingSystem(OPTIONS.is_ascii) != 0) {
+    // Sprite Setup
+    if (auto error_code = SpritesheetLoadingSystem() != 0) {
         return error_code;
     }
+    SpriteGenerator();
 
-    // World Setup
-    SpriteGenerator(OPTIONS.is_ascii);
+    // Create Entities
+    EntityManager entityManager;
 
-    Entity player = 1;
-
+    Entity player       = entityManager.create_entity();
     positions[player]   = {MAP_WIDTH / 2, MAP_HEIGHT / 2};
     renderables[player] = Renderable(PlayerMaleStanding);
-    std::vector<Entity> entities;
-    entities.push_back(player);
 
-    Grid grid = Grid();
+    EntityGeneratorSystem(entityManager);
+
+    // Create Map
+    Grid grid = Grid{};
     MapGeneratorSystem(grid);
     BuildingGeneratorSystem(grid);
-    Camera camera = Camera{.view = view};
 
     bool wait = false;
     DrawSystem(window, renderTexture, camera, grid);
+
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
             if (event->is<sf::Event::Closed>()
@@ -88,7 +91,7 @@ int main(int argc, char** argv) {
 
             if (!wait) {
                 InputSystem(player);
-                MovementSystem(entities);
+                MovementSystem(entityManager.active_entities);
                 CollisionSystem(grid);
                 CameraSystem(player, camera);
                 movements.clear();
