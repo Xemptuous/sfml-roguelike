@@ -17,12 +17,6 @@ Options OPTIONS;
 Vector2f SIZE_FACTOR{};
 Vector2f SCALE_FACTOR{};
 
-// Component Storage
-// std::unordered_map<Entity, Position> positions{};
-// std::unordered_map<Entity, Movement> movements{};
-// std::unordered_map<Entity, Renderable> renderables{};
-
-// Systems
 void DrawSystem(RenderWindow& window, RenderTexture& render, Camera& camera, Grid& grid, ECS& ecs) {
     // printf("DrawSystem\n");
     window.clear();

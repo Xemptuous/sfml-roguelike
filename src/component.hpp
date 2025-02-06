@@ -33,13 +33,13 @@ struct ComponentManager {
     // Get or create storage for component type T
     template <typename T> ComponentStorage<T>& get_storage() {
         std::type_index index(typeid(T));
+        // create if not found
         if (storages.find(index) == storages.end()) {
             storages[index] = std::make_unique<ComponentStorage<T>>();
         }
         return *static_cast<ComponentStorage<T>*>(storages[index].get());
     };
     template <typename T> void add_component(Entity entity, const T& component) {
-
         get_storage<T>().add(entity, component);
     };
     template <typename T> T* get_component(Entity entity) { return get_storage<T>().get(entity); };
