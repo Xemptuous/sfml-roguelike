@@ -109,6 +109,7 @@ void CombatSystem(ECS& ecs) {
         Movement* mov = ecs.get_component<Movement>(entity);
         Position* pos = ecs.get_component<Position>(entity);
 
+        // if moving into the player, do combat
         if (pos->x == playerPos->x && pos->y == playerPos->y) {
             Name* attName  = ecs.get_component<Name>(entity);
             Name* defName  = ecs.get_component<Name>(Player);
