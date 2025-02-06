@@ -16,6 +16,8 @@ struct Camera {
     int y1; // Top Left
     int x2; // Bottom Right
     int y2; // Bottom Right
+
+    void moveCamera(int dx, int dy);
 };
 
 // Systems

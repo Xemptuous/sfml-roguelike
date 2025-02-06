@@ -161,30 +161,12 @@ void CameraSystem(Entity& player, Camera& camera, ECS& ecs) {
         can_move_view_y = false;
 
     if (can_move_view_x) {
-        int nx1 = camera.x1 + playerMov->dx;
-        int nx2 = camera.x2 + playerMov->dx;
-
-        if (nx1 < 0 || nx2 > MAP_WIDTH) {
-            return;
-        }
-        camera.view.move({
-            playerMov->dx * SPRITE_WIDTH * SCALE_FACTOR.x,
-            0,
-        });
+        camera.moveCamera(playerMov->dx, 0);
         ResizeCameraSystem(camera);
     };
 
     if (can_move_view_y) {
-        int ny1 = camera.y1 + playerMov->dy;
-        int ny2 = camera.y2 + playerMov->dy;
-
-        if (ny1 < 0 || ny2 > MAP_HEIGHT) {
-            return;
-        }
-        camera.view.move({
-            0,
-            playerMov->dy * SPRITE_HEIGHT * SCALE_FACTOR.y,
-        });
+        camera.moveCamera(0, playerMov->dy);
         ResizeCameraSystem(camera);
     };
 }
@@ -277,4 +259,19 @@ void SwapTilesetSystem(Entity& player, Camera& camera, Grid& grid, ECS& ecs) {
     }
     ResizeSystem(player, camera, grid, ecs);
     // grid.updateMap();
+}
+
+void Camera::moveCamera(int dx, int dy) {
+    int nx1 = x1 + dx;
+    int nx2 = x2 + dx;
+    int ny1 = y1 + dy;
+    int ny2 = y2 + dy;
+
+    if (nx1 < 0 || ny1 < 0 || nx2 > MAP_WIDTH || ny2 > MAP_HEIGHT) {
+        return;
+    }
+    this->view.move({
+        dx * SPRITE_WIDTH * SCALE_FACTOR.x,
+        dy * SPRITE_HEIGHT * SCALE_FACTOR.y,
+    });
 }
