@@ -56,6 +56,7 @@ int main(int argc, char** argv) {
     ECS ecs = ECS{};
 
     Entity player = ecs.create_entity();
+    ecs.add_component(player, Name{"Player"});
     ecs.add_component(player, Position{MAP_WIDTH / 2, MAP_HEIGHT / 2});
     ecs.add_component(player, Renderable(PlayerMaleStanding));
     ecs.add_component(player, Movement{0, 0});

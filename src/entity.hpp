@@ -11,12 +11,14 @@ using Entity = uint64_t;
 const Entity MAX_ENTITIES = 10000;
 
 // Components
+typedef std::string Name;
 struct Position {
     int x, y;
 };
 struct Movement {
     int dx, dy;
 };
+typedef int Vision;
 struct Health {
     int curr, max;
 };
