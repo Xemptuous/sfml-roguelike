@@ -92,26 +92,21 @@ int main(int argc, char** argv) {
             }
 
             if (!wait) {
-                printf("INPUT SYSTEM\n");
                 InputSystem(player, ecs);
-                printf("MOVEMENT SYSTEM\n");
-                AIMovementSystem(ecs);
+                AIMovementSystem(player, ecs);
                 MovementSystem(ecs);
-                printf("COLLISION SYSTEM\n");
-                CollisionSystem(grid, ecs);
-                printf("CAMERA SYSTEM\n");
+                CollisionSystem(player, grid, ecs);
                 CameraSystem(player, camera, ecs);
-                printf("REMOVE MOVEMENTS\n");
                 for (Entity entity : ecs.entities()) {
                     Movement* mov = ecs.get_component<Movement>(entity);
-                    mov->dx       = 0;
-                    mov->dy       = 0;
+
+                    mov->dx = 0;
+                    mov->dy = 0;
                 }
             }
         }
 
         if (!wait) {
-            printf("DRAW SYSTEM\n");
             DrawSystem(window, renderTexture, camera, grid, ecs);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
             wait = true;

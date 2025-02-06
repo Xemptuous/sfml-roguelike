@@ -23,13 +23,11 @@ struct Camera {
 // Systems
 void DrawSystem(RenderWindow&, RenderTexture&, Camera&, Grid&, ECS&);
 void RenderSystem(RenderTexture&, Camera&, Grid&, ECS&);
-void CameraSystem(Entity& player, Camera&, ECS&);
+void CameraSystem(Entity player, Camera&, ECS&);
 
-void InputSystem(Entity& player, ECS&);
-void MovementSystem(ECS&);
-void CollisionSystem(Grid&, ECS&);
+void InputSystem(Entity player, ECS&);
 
-void ResizeSystem(Entity& player, Camera&, Grid&, ECS&);
+void ResizeSystem(Entity player, Camera&, Grid&, ECS&);
 void ResizeCameraSystem(Camera&);
 
-void SwapTilesetSystem(Entity& player, Camera&, Grid&, ECS&);
+void SwapTilesetSystem(Entity player, Camera&, Grid&, ECS&);

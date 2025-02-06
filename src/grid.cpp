@@ -17,32 +17,32 @@ Tile::Tile() : sprite(*getSpriteTile(None)), bg_sprite(*getSpriteTile(BrownWall1
     this->sprite.setColor(this->fg);
     this->bg_sprite.setColor(this->bg);
 }
-Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype)
-    : position(pos),
-      tile_type(ttype),
-      sprite_type(stype),
-      fg(COLOR_ARRAY[rl::Color::White]),
-      bg(COLOR_ARRAY[rl::Color::Black]),
-      sprite(*getSpriteTile(stype)),
-      bg_sprite(*getSpriteTile(BrownWall1)) {};
+Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype) :
+    position(pos),
+    tile_type(ttype),
+    sprite_type(stype),
+    fg(COLOR_ARRAY[rl::Color::White]),
+    bg(COLOR_ARRAY[rl::Color::Black]),
+    sprite(*getSpriteTile(stype)),
+    bg_sprite(*getSpriteTile(BrownWall1)) {};
 
-Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg)
-    : position(pos),
-      tile_type(ttype),
-      sprite_type(stype),
-      fg(COLOR_ARRAY[fg]),
-      bg(COLOR_ARRAY[rl::Color::Black]),
-      sprite(*getSpriteTile(stype)),
-      bg_sprite(*getSpriteTile(BrownWall1)) {};
+Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg) :
+    position(pos),
+    tile_type(ttype),
+    sprite_type(stype),
+    fg(COLOR_ARRAY[fg]),
+    bg(COLOR_ARRAY[rl::Color::Black]),
+    sprite(*getSpriteTile(stype)),
+    bg_sprite(*getSpriteTile(BrownWall1)) {};
 
-Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg, rl::Color bg)
-    : position(pos),
-      tile_type(ttype),
-      sprite_type(stype),
-      fg(COLOR_ARRAY[fg]),
-      bg(COLOR_ARRAY[bg]),
-      sprite(*getSpriteTile(stype)),
-      bg_sprite(*getSpriteTile(BrownWall1)) {};
+Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg, rl::Color bg) :
+    position(pos),
+    tile_type(ttype),
+    sprite_type(stype),
+    fg(COLOR_ARRAY[fg]),
+    bg(COLOR_ARRAY[bg]),
+    sprite(*getSpriteTile(stype)),
+    bg_sprite(*getSpriteTile(BrownWall1)) {};
 
 void Tile::resetSprite() {
     this->sprite    = *getSpriteTile(this->sprite_type);
@@ -75,6 +75,7 @@ void MapGeneratorSystem(Grid& grid) {
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<int> picker(0, 100);
+    using namespace rl;
 
     for (int i = 0; i < n; i++) {
         sf::Vector2i pos = idx_xy(i);
@@ -89,7 +90,7 @@ void MapGeneratorSystem(Grid& grid) {
             case 7:
             case 8:
             case 9:
-            case 10: grid.tiles.push_back(Tile(pos, Floor, DimGrass1, rl::Color::DarkGreen)); break;
+            case 10: grid.tiles.push_back(Tile(pos, Floor, DimGrass1, DarkGreen)); break;
             case 11:
             case 12:
             case 13:
@@ -100,15 +101,15 @@ void MapGeneratorSystem(Grid& grid) {
             case 18:
             case 19:
             case 20:
-            case 21: grid.tiles.push_back(Tile(pos, Floor, DimGrass2, rl::Color::DarkGreen)); break;
-            case 22: grid.tiles.push_back(Tile(pos, Floor, Grass1, rl::Color::Green)); break;
-            case 23: grid.tiles.push_back(Tile(pos, Floor, Grass2, rl::Color::Green)); break;
-            case 24: grid.tiles.push_back(Tile(pos, Floor, Flower1, rl::Color::Red)); break;
-            // case 21: grid.tiles.push_back(Tile(pos, Floor, Flower2, rl::Color::Red)); break;
-            case 26: grid.tiles.push_back(Tile(pos, Floor, Mushroom1, rl::Color::Red)); break;
-            case 27: grid.tiles.push_back(Tile(pos, Floor, Mushroom2, rl::Color::Gray)); break;
-            case 28: grid.tiles.push_back(Tile(pos, Wall, Tree1, rl::Color::SaddleBrown)); break;
-            case 29: grid.tiles.push_back(Tile(pos, Wall, Tree2, rl::Color::SaddleBrown)); break;
+            case 21: grid.tiles.push_back(Tile(pos, Floor, DimGrass2, DarkGreen)); break;
+            case 22: grid.tiles.push_back(Tile(pos, Floor, Grass1, Green)); break;
+            case 23: grid.tiles.push_back(Tile(pos, Floor, Grass2, Green)); break;
+            case 24: grid.tiles.push_back(Tile(pos, Floor, Flower1, DarkRed)); break;
+            // case 21: grid.tiles.push_back(Tile(pos, Floor, Flower2, Red)); break;
+            case 26: grid.tiles.push_back(Tile(pos, Floor, Mushroom1, DarkRed)); break;
+            case 27: grid.tiles.push_back(Tile(pos, Floor, Mushroom2, Gray)); break;
+            case 28: grid.tiles.push_back(Tile(pos, Wall, Tree1, SaddleBrown)); break;
+            case 29: grid.tiles.push_back(Tile(pos, Wall, Tree2, SaddleBrown)); break;
             default: grid.tiles.push_back(Tile(pos, Floor, None));
         }
     }

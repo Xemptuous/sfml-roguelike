@@ -75,7 +75,7 @@ void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS&
     }
 }
 
-void InputSystem(Entity& player, ECS& ecs) {
+void InputSystem(Entity player, ECS& ecs) {
     // printf("InputSystem\n");
     using namespace sf::Keyboard;
     int dx = 0, dy = 0;
@@ -97,35 +97,7 @@ void InputSystem(Entity& player, ECS& ecs) {
     // if (isKeyPressed(Key::L)) tryMoveView(1, 0);
 }
 
-void MovementSystem(ECS& ecs) {
-    for (Entity entity : ecs.entities()) {
-        Position* pos = ecs.get_component<Position>(entity);
-        Movement* mov = ecs.get_component<Movement>(entity);
-
-        pos->x += mov->dx;
-        pos->y += mov->dy;
-    }
-}
-
-void CollisionSystem(Grid& grid, ECS& ecs) {
-    for (Entity entity : ecs.entities()) {
-        Position* pos = ecs.get_component<Position>(entity);
-        int dest_x    = pos->x;
-        int dest_y    = pos->y;
-
-        if (!grid.isWalkable(dest_x, dest_y)) {
-            // undo movement if colliding
-            Movement* mov  = ecs.get_component<Movement>(entity);
-            pos->x        -= mov->dx;
-            pos->y        -= mov->dy;
-
-            mov->dx = 0;
-            mov->dy = 0;
-        }
-    }
-}
-
-void CameraSystem(Entity& player, Camera& camera, ECS& ecs) {
+void CameraSystem(Entity player, Camera& camera, ECS& ecs) {
     Position* playerPos = ecs.get_component<Position>(player);
     Movement* playerMov = ecs.get_component<Movement>(player);
 
@@ -165,7 +137,7 @@ void CameraSystem(Entity& player, Camera& camera, ECS& ecs) {
     };
 }
 
-void ResizeSystem(Entity& player, Camera& camera, Grid& grid, ECS& ecs) {
+void ResizeSystem(Entity player, Camera& camera, Grid& grid, ECS& ecs) {
     // update scale and size factors
     SIZE_FACTOR = Vector2f{
         (float)RENDER_WIDTH / CONSOLE_WIDTH,
@@ -186,6 +158,7 @@ void ResizeSystem(Entity& player, Camera& camera, Grid& grid, ECS& ecs) {
         CONSOLE_WIDTH * SIZE_FACTOR.x,
         CONSOLE_HEIGHT * SIZE_FACTOR.y,
     });
+
     // update camera dimensions
     ResizeCameraSystem(camera);
 
@@ -241,7 +214,7 @@ void ResizeCameraSystem(Camera& camera) {
     camera.y2 = y2;
 };
 
-void SwapTilesetSystem(Entity& player, Camera& camera, Grid& grid, ECS& ecs) {
+void SwapTilesetSystem(Entity player, Camera& camera, Grid& grid, ECS& ecs) {
     OPTIONS.is_ascii = !OPTIONS.is_ascii;
     SpritesheetLoadingSystem();
     SPRITE_REGISTRY.clear();

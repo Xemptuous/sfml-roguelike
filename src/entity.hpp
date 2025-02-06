@@ -1,8 +1,10 @@
 #pragma once
 #include "ecs.hpp"
+#include "grid.hpp"
 #include "sprite.hpp"
 
 #include <SFML/Graphics.hpp>
+#include <string>
 
 using namespace sf;
 
@@ -70,5 +72,10 @@ struct Renderable {
         zIndex(z) {}
 };
 
+void MovementSystem(ECS&);
+void AIMovementSystem(Entity player, ECS&);
+void CollisionSystem(Entity player, Grid&, ECS&);
+void LineOfSightSystem(Entity player, ECS&);
+void CombatSystem(Entity attacker, Entity defender, ECS&);
+
 void EntityGeneratorSystem(ECS&);
-void AIMovementSystem(ECS&);

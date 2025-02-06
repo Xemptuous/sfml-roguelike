@@ -1,7 +1,6 @@
 #include "entity.hpp"
 
-#include "color.hpp"
-
+#include <iostream>
 #include <random>
 
 extern const int MAP_WIDTH, MAP_HEIGHT;
@@ -15,6 +14,103 @@ enum AIBehavior {
     Standard,
     Aggressive,
 };
+
+void MovementSystem(ECS& ecs) {
+    for (Entity entity : ecs.entities()) {
+        Position* pos = ecs.get_component<Position>(entity);
+        Movement* mov = ecs.get_component<Movement>(entity);
+
+        pos->x += mov->dx;
+        pos->y += mov->dy;
+    }
+}
+
+void CollisionSystem(Entity player, Grid& grid, ECS& ecs) {
+    Position* playerPos = ecs.get_component<Position>(player);
+    Movement* playerMov = ecs.get_component<Movement>(player);
+    for (Entity entity : ecs.entities()) {
+        Position* pos = ecs.get_component<Position>(entity);
+        Movement* mov = ecs.get_component<Movement>(entity);
+        int dest_x    = pos->x;
+        int dest_y    = pos->y;
+
+        if (!grid.isWalkable(dest_x, dest_y)) {
+            // undo movement if colliding
+            pos->x -= mov->dx;
+            pos->y -= mov->dy;
+
+            mov->dx = 0;
+            mov->dy = 0;
+        }
+
+        if (entity != player && pos->x == playerPos->x && pos->y == playerPos->y) {
+            CombatSystem(entity, player, ecs);
+            pos->x -= mov->dx;
+            pos->y -= mov->dy;
+        }
+    }
+}
+
+void CombatSystem(Entity attacker, Entity defender, ECS& ecs) {
+    Name attackerName = *ecs.get_component<Name>(attacker);
+    Name playerName   = *ecs.get_component<Name>(defender);
+    std::cout << attackerName << " attacks " << playerName << '\n';
+}
+
+void AIMovementSystem(Entity player, ECS& ecs) {
+    std::random_device dev;
+    std::mt19937 rng(dev());
+    std::uniform_int_distribution<int> std_mov(-1, 1);
+    std::uniform_int_distribution<int> agg_mov(-2, 2);
+
+    Position* playerPos = ecs.get_component<Position>(player);
+    Movement* playerMov = ecs.get_component<Movement>(player);
+    int playerX         = playerPos->x + playerMov->dx;
+    int playerY         = playerPos->y + playerMov->dy;
+
+    for (Entity entity : ecs.entities()) {
+        if (entity == player) continue;
+
+        Movement* mov = ecs.get_component<Movement>(entity);
+        Position* pos = ecs.get_component<Position>(entity);
+
+        switch (*ecs.get_component<AIBehavior>(entity)) {
+            case Standard:
+                mov->dx = std_mov(rng);
+                mov->dy = std_mov(rng);
+                break;
+            case Aggressive: {
+                Vision vision    = *ecs.get_component<Vision>(entity);
+                bool playerFound = false;
+
+                // search for player somewhere within this entity's vision range
+                // TODO: include object collision in LOS (e.g. walls)
+                for (int y = pos->y - vision; y < pos->y + vision; y++) {
+                    for (int x = pos->x - vision; x < pos->x + vision; x++) {
+                        if (x == playerX && y == playerY) {
+                            playerFound = true;
+                            break;
+                        }
+                    }
+                    if (playerFound) break;
+                }
+
+                // move towards the player
+                if (playerFound) {
+                    mov->dx = playerX > pos->x ? 1 : playerX < pos->x ? -1 : 0;
+                    mov->dy = playerY > pos->y ? 1 : playerY < pos->y ? -1 : 0;
+                }
+                // randomly wander
+                else {
+                    mov->dx = std_mov(rng);
+                    mov->dy = std_mov(rng);
+                }
+                break;
+            }
+            default: break;
+        }
+    }
+}
 
 void EntityGeneratorSystem(ECS& ecs) {
     std::random_device dev;
