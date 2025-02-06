@@ -54,14 +54,13 @@ int main(int argc, char** argv) {
 
     // Create Entities
     ECS ecs = ECS{};
-
-    Entity player = ecs.create_entity();
-    ecs.add_component(player, Name{"Player"});
-    ecs.add_component(player, Position{MAP_WIDTH / 2, MAP_HEIGHT / 2});
-    ecs.add_component(player, Renderable(PlayerMaleStanding));
-    ecs.add_component(player, Movement{0, 0});
-    ecs.add_component(player, Health{100, 100});
-    ecs.add_component(player, Damage{10, 10});
+    ecs.create_entity();
+    ecs.add_component(Player, Name{"Player"});
+    ecs.add_component(Player, Position{MAP_WIDTH / 2, MAP_HEIGHT / 2});
+    ecs.add_component(Player, Renderable(PlayerMaleStanding));
+    ecs.add_component(Player, Movement{0, 0});
+    ecs.add_component(Player, Health{100, 100});
+    ecs.add_component(Player, Damage{10, 10});
 
     EntityGeneratorSystem(ecs);
 
@@ -82,21 +81,22 @@ int main(int argc, char** argv) {
                 wait = false;
                 using namespace sf::Keyboard;
                 if (isKeyPressed(Key::A)) {
-                    SwapTilesetSystem(player, camera, grid, ecs);
+                    SwapTilesetSystem(camera, grid, ecs);
                     continue;
                 }
             } else if (event->is<sf::Event::Resized>()) {
                 printf("RESIZE SYSTEM\n");
-                ResizeSystem(player, camera, grid, ecs);
+                ResizeSystem(camera, grid, ecs);
                 wait = false;
             }
 
             if (!wait) {
-                InputSystem(player, ecs);
-                AIMovementSystem(player, ecs);
+                InputSystem(ecs);
+                AIMovementSystem(ecs);
                 MovementSystem(ecs);
-                CollisionSystem(player, grid, ecs);
-                CameraSystem(player, camera, ecs);
+                CollisionSystem(grid, ecs);
+                CombatSystem(ecs);
+                CameraSystem(camera, ecs);
                 for (Entity entity : ecs.entities()) {
                     Movement* mov = ecs.get_component<Movement>(entity);
 

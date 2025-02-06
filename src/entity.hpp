@@ -12,6 +12,8 @@ using Entity = uint64_t;
 
 const Entity MAX_ENTITIES = 10000;
 
+static const Entity Player = 0;
+
 // Components
 typedef std::string Name;
 struct Position {
@@ -73,9 +75,9 @@ struct Renderable {
 };
 
 void MovementSystem(ECS&);
-void AIMovementSystem(Entity player, ECS&);
-void CollisionSystem(Entity player, Grid&, ECS&);
-void LineOfSightSystem(Entity player, ECS&);
-void CombatSystem(Entity attacker, Entity defender, ECS&);
+void AIMovementSystem(ECS&);
+void CollisionSystem(Grid&, ECS&);
+void LineOfSightSystem(ECS&);
+void CombatSystem(ECS&);
 
 void EntityGeneratorSystem(ECS&);

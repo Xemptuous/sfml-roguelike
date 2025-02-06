@@ -75,7 +75,7 @@ void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS&
     }
 }
 
-void InputSystem(Entity player, ECS& ecs) {
+void InputSystem(ECS& ecs) {
     // printf("InputSystem\n");
     using namespace sf::Keyboard;
     int dx = 0, dy = 0;
@@ -85,7 +85,7 @@ void InputSystem(Entity player, ECS& ecs) {
     if (isKeyPressed(Key::Down)) dy = 1;
 
     if (dx != 0 || dy != 0) {
-        Movement* mov = ecs.get_component<Movement>(player);
+        Movement* mov = ecs.get_component<Movement>(Player);
 
         mov->dx = dx;
         mov->dy = dy;
@@ -97,9 +97,9 @@ void InputSystem(Entity player, ECS& ecs) {
     // if (isKeyPressed(Key::L)) tryMoveView(1, 0);
 }
 
-void CameraSystem(Entity player, Camera& camera, ECS& ecs) {
-    Position* playerPos = ecs.get_component<Position>(player);
-    Movement* playerMov = ecs.get_component<Movement>(player);
+void CameraSystem(Camera& camera, ECS& ecs) {
+    Position* playerPos = ecs.get_component<Position>(Player);
+    Movement* playerMov = ecs.get_component<Movement>(Player);
 
     bool can_move_view_x = true;
     bool can_move_view_y = true;
@@ -137,7 +137,7 @@ void CameraSystem(Entity player, Camera& camera, ECS& ecs) {
     };
 }
 
-void ResizeSystem(Entity player, Camera& camera, Grid& grid, ECS& ecs) {
+void ResizeSystem(Camera& camera, Grid& grid, ECS& ecs) {
     // update scale and size factors
     SIZE_FACTOR = Vector2f{
         (float)RENDER_WIDTH / CONSOLE_WIDTH,
@@ -149,7 +149,7 @@ void ResizeSystem(Entity player, Camera& camera, Grid& grid, ECS& ecs) {
     };
 
     // update camera position
-    Position* playerPos = ecs.get_component<Position>(player);
+    Position* playerPos = ecs.get_component<Position>(Player);
     camera.view.setCenter({
         playerPos->x * SIZE_FACTOR.x,
         playerPos->y * SIZE_FACTOR.y - CONSOLE_HEIGHT,
@@ -214,7 +214,7 @@ void ResizeCameraSystem(Camera& camera) {
     camera.y2 = y2;
 };
 
-void SwapTilesetSystem(Entity player, Camera& camera, Grid& grid, ECS& ecs) {
+void SwapTilesetSystem(Camera& camera, Grid& grid, ECS& ecs) {
     OPTIONS.is_ascii = !OPTIONS.is_ascii;
     SpritesheetLoadingSystem();
     SPRITE_REGISTRY.clear();
@@ -224,7 +224,7 @@ void SwapTilesetSystem(Entity player, Camera& camera, Grid& grid, ECS& ecs) {
         Renderable* renderable = ecs.get_component<Renderable>(entity);
         renderable->sprite     = *getSpriteTile(renderable->sprite_type);
     }
-    ResizeSystem(player, camera, grid, ecs);
+    ResizeSystem(camera, grid, ecs);
     // grid.updateMap();
 }
 

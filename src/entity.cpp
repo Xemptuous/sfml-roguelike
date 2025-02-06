@@ -25,9 +25,9 @@ void MovementSystem(ECS& ecs) {
     }
 }
 
-void CollisionSystem(Entity player, Grid& grid, ECS& ecs) {
-    Position* playerPos = ecs.get_component<Position>(player);
-    Movement* playerMov = ecs.get_component<Movement>(player);
+void CollisionSystem(Grid& grid, ECS& ecs) {
+    Position* playerPos = ecs.get_component<Position>(Player);
+    Movement* playerMov = ecs.get_component<Movement>(Player);
     for (Entity entity : ecs.entities()) {
         Position* pos = ecs.get_component<Position>(entity);
         Movement* mov = ecs.get_component<Movement>(entity);
@@ -42,34 +42,22 @@ void CollisionSystem(Entity player, Grid& grid, ECS& ecs) {
             mov->dx = 0;
             mov->dy = 0;
         }
-
-        if (entity != player && pos->x == playerPos->x && pos->y == playerPos->y) {
-            CombatSystem(entity, player, ecs);
-            pos->x -= mov->dx;
-            pos->y -= mov->dy;
-        }
     }
 }
 
-void CombatSystem(Entity attacker, Entity defender, ECS& ecs) {
-    Name attackerName = *ecs.get_component<Name>(attacker);
-    Name playerName   = *ecs.get_component<Name>(defender);
-    std::cout << attackerName << " attacks " << playerName << '\n';
-}
-
-void AIMovementSystem(Entity player, ECS& ecs) {
+void AIMovementSystem(ECS& ecs) {
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<int> std_mov(-1, 1);
     std::uniform_int_distribution<int> agg_mov(-2, 2);
 
-    Position* playerPos = ecs.get_component<Position>(player);
-    Movement* playerMov = ecs.get_component<Movement>(player);
+    Position* playerPos = ecs.get_component<Position>(Player);
+    Movement* playerMov = ecs.get_component<Movement>(Player);
     int playerX         = playerPos->x + playerMov->dx;
     int playerY         = playerPos->y + playerMov->dy;
 
     for (Entity entity : ecs.entities()) {
-        if (entity == player) continue;
+        if (entity == Player) continue;
 
         Movement* mov = ecs.get_component<Movement>(entity);
         Position* pos = ecs.get_component<Position>(entity);
@@ -108,6 +96,36 @@ void AIMovementSystem(Entity player, ECS& ecs) {
                 break;
             }
             default: break;
+        }
+    }
+}
+
+void CombatSystem(ECS& ecs) {
+    Position* playerPos = ecs.get_component<Position>(Player);
+    Movement* playerMov = ecs.get_component<Movement>(Player);
+
+    for (Entity entity : ecs.entities()) {
+        if (entity == Player) continue;
+        Movement* mov = ecs.get_component<Movement>(entity);
+        Position* pos = ecs.get_component<Position>(entity);
+
+        if (pos->x == playerPos->x && pos->y == playerPos->y) {
+            Name* attName  = ecs.get_component<Name>(entity);
+            Name* defName  = ecs.get_component<Name>(Player);
+            Damage* damage = ecs.get_component<Damage>(entity);
+            Health* health = ecs.get_component<Health>(Player);
+
+            std::random_device dev;
+            std::mt19937 rng(dev());
+            std::uniform_int_distribution<int> rand_dmg(damage->min, damage->max);
+            int dmg = rand_dmg(rng);
+
+            health->curr -= dmg;
+            std::cout << *attName << " attacks " << *defName << " for " << dmg << '\n';
+            std::cout << *defName << " health: " << health->curr << "/" << health->max << '\n';
+
+            pos->x -= mov->dx;
+            pos->y -= mov->dy;
         }
     }
 }
