@@ -41,6 +41,7 @@ struct Grid {
 
     Grid();
     bool isWalkable(int x, int y);
+    bool isWalkable(sf::Vector2i);
     void updateMap();
     void reloadSprites();
 };

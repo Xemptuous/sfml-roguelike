@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
 
             if (!wait) {
                 InputSystem(ecs);
-                AIMovementSystem(ecs);
+                AIMovementSystem(grid, ecs);
                 MovementSystem(ecs);
                 CollisionSystem(grid, ecs);
                 CombatSystem(ecs);

@@ -75,9 +75,10 @@ struct Renderable {
 };
 
 void MovementSystem(ECS&);
-void AIMovementSystem(ECS&);
+void AIMovementSystem(Grid&, ECS&);
 void CollisionSystem(Grid&, ECS&);
 void LineOfSightSystem(ECS&);
+void PathFindingSystem(Entity start, Entity end, Grid&, ECS&);
 void CombatSystem(ECS&);
 
 void EntityGeneratorSystem(ECS&);
