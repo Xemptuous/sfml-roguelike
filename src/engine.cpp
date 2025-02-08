@@ -122,13 +122,30 @@ void UISystem(RenderWindow& window, Font& font, Camera& camera, ECS& ecs) {
 }
 
 void InputSystem(ECS& ecs) {
-    // printf("InputSystem\n");
     using namespace sf::Keyboard;
     int dx = 0, dy = 0;
-    if (isKeyPressed(Key::Left)) dx = -1;
-    if (isKeyPressed(Key::Right)) dx = 1;
-    if (isKeyPressed(Key::Up)) dy = -1;
-    if (isKeyPressed(Key::Down)) dy = 1;
+    // Orthogonol Movement
+    if (isKeyPressed(Key::Left) || isKeyPressed(Key::H)) dx = -1;
+    if (isKeyPressed(Key::Right) || isKeyPressed(Key::L)) dx = 1;
+    if (isKeyPressed(Key::Up) || isKeyPressed(Key::K)) dy = -1;
+    if (isKeyPressed(Key::Down) || isKeyPressed(Key::J)) dy = 1;
+    // Diagonal Movement
+    if (isKeyPressed(Key::Y)) {
+        dx = -1;
+        dy = -1;
+    }
+    if (isKeyPressed(Key::U)) {
+        dx = 1;
+        dy = -1;
+    }
+    if (isKeyPressed(Key::B)) {
+        dx = -1;
+        dy = 1;
+    }
+    if (isKeyPressed(Key::N)) {
+        dx = 1;
+        dy = 1;
+    }
 
     if (dx != 0 || dy != 0) {
         Movement* mov = ecs.get_component<Movement>(Player);
