@@ -63,6 +63,26 @@ enum SpriteTiles : size_t {
     ReptileBow,
     DemonUnarmed,
     DemonAxe,
+
+    // Items
+    Potion,
+    Scroll,
+    Food,
+    Wand,
+    Staff,
+    Ring,
+    Amulet,
+    Gold,
+    Polearm,
+    EdgedWeapon,
+    BluntWeapon,
+    RangedWeapon,
+    Ammo,
+    SoftArmor,
+    HardArmor,
+    MiscArmor,
+    Shield,
+
     COUNT,
 };
 
@@ -163,6 +183,25 @@ static const std::unordered_map<SpriteTiles, sf::Vector2i> ASCII_COORDINATES = {
     {ReptileBow,         sf::Vector2i({12, 6}) }, // l
     {DemonUnarmed,       sf::Vector2i({4, 6})  }, // d
     {DemonAxe,           sf::Vector2i({4, 6})  }, // d
+
+    // Items
+    {Potion,             sf::Vector2i({1, 2})  },
+    {Scroll,             sf::Vector2i({15, 3}) },
+    {Food,               sf::Vector2i({12, 2}) },
+    {Wand,               sf::Vector2i({13, 2}) },
+    {Staff,              sf::Vector2i({15, 5}) },
+    {Ring,               sf::Vector2i({13, 4}) },
+    {Amulet,             sf::Vector2i({2, 2})  },
+    {Gold,               sf::Vector2i({3, 2})  },
+    {Polearm,            sf::Vector2i({15, 2}) },
+    {EdgedWeapon,        sf::Vector2i({12, 7}) },
+    {BluntWeapon,        sf::Vector2i({12, 5}) },
+    {RangedWeapon,       sf::Vector2i({13, 7}) },
+    {Ammo,               sf::Vector2i({11, 7}) },
+    {SoftArmor,          sf::Vector2i({8, 2})  },
+    {HardArmor,          sf::Vector2i({11, 5}) },
+    {MiscArmor,          sf::Vector2i({13, 5}) },
+    {Shield,             sf::Vector2i({9, 2})  },
 };
 
 static const std::unordered_map<std::string, SpriteTiles> stringSpriteMap = {
