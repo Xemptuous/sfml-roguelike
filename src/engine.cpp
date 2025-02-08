@@ -49,6 +49,7 @@ void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS&
     std::vector<std::pair<Entity, Renderable>> renderQueue;
     for (Entity entity : ecs.entities()) {
         Renderable* renderable = ecs.get_component<Renderable>(entity);
+        if (!renderable) continue;
         renderQueue.push_back({entity, *renderable});
     }
     std::sort(renderQueue.begin(), renderQueue.end(), [](auto& a, auto& b) {
@@ -57,6 +58,7 @@ void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS&
 
     for (auto& [entity, renderable] : renderQueue) {
         const Position* pos = ecs.get_component<Position>(entity);
+        if (!pos) continue;
 
         Vector2f posv{
             std::round(SIZE_FACTOR.x * pos->x),
@@ -232,6 +234,7 @@ void ResizeSystem(Camera& camera, Grid& grid, ECS& ecs) {
             std::round(SIZE_FACTOR.y * playerPos->y),
         };
         Renderable* renderable = ecs.get_component<Renderable>(entity);
+        if (!renderable) continue;
         renderable->sprite.setPosition(pos);
         renderable->sprite.setScale(SCALE_FACTOR);
         if (OPTIONS.is_ascii) {

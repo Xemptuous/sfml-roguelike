@@ -28,6 +28,8 @@ void MovementSystem(Grid& grid, ECS& ecs) {
         Position* pos = ecs.get_component<Position>(entity);
         Movement* mov = ecs.get_component<Movement>(entity);
 
+        if (!(pos && mov)) continue;
+
         int newX = pos->x + mov->dx;
         int newY = pos->y + mov->dy;
 
@@ -69,6 +71,8 @@ void AIMovementIntentSystem(Grid& grid, ECS& ecs) {
         Position* pos = ecs.get_component<Position>(entity);
         Movement* mov = ecs.get_component<Movement>(entity);
 
+        if (!(pos && mov)) continue;
+
         switch (*ecs.get_component<AIBehavior>(entity)) {
             case Standard:
                 mov->dx = std_mov(rng);
@@ -97,8 +101,6 @@ void CombatSystem(ECS& ecs) {
     // create map of current positions
     auto& positionMap = ecs.component_manager.positionMap;
     std::vector<Entity> to_destroy;
-    // BUG: player cant attack most of the time
-    // somewhat related to changes in MovementSystem
     for (Entity attacker : ecs.entities()) {
         // don't process entity if it's destroyed
         for (Entity destroyed : to_destroy)
@@ -108,6 +110,8 @@ void CombatSystem(ECS& ecs) {
         Movement* mov = ecs.get_component<Movement>(attacker);
         Damage* dmg   = ecs.get_component<Damage>(attacker);
         Name* attName = ecs.get_component<Name>(attacker);
+
+        if (!(pos && mov && dmg && attName)) continue;
 
         int targetX = pos->x + mov->dx;
         int targetY = pos->y + mov->dy;
