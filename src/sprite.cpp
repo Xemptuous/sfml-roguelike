@@ -26,11 +26,6 @@ int SpritesheetLoadingSystem() {
         printf("Could not load sprite sheet!\n");
         return 2;
     }
-    //
-    // if (!font.openFromFile("../include/DejaVuSans.ttf")) {
-    //     printf("Could not load font file!\n");
-    //     return 1;
-    // }
     return 0;
 }
 

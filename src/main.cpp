@@ -60,16 +60,6 @@ int main(int argc, char** argv) {
 
     // Create Entities
     ECS ecs = ECS{};
-
-    ecs.create_entity()
-        .with(Name{"Player"})
-        .with(Position{MAP_WIDTH / 2, MAP_HEIGHT / 2})
-        .with(Renderable(PlayerMaleStanding))
-        .with(Movement{0, 0})
-        .with(Health{100, 100})
-        .with(Damage{10, 10})
-        .build();
-
     EntityGeneratorSystem(ecs);
 
     // Create Map

@@ -271,7 +271,17 @@ void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
 };
 
 void EntityGeneratorSystem(ECS& ecs) {
+    // Create Player
+    ecs.create_entity()
+        .with(Name{"Player"})
+        .with(Position{MAP_WIDTH / 2, MAP_HEIGHT / 2})
+        .with(Renderable(PlayerMaleStanding))
+        .with(Movement{0, 0})
+        .with(Health{100, 100})
+        .with(Damage{10, 10})
+        .build();
 
+    // Read Entity Table
     std::ifstream fJson("entities.json");
     std::stringstream buffer;
     buffer << fJson.rdbuf();
@@ -283,10 +293,11 @@ void EntityGeneratorSystem(ECS& ecs) {
     std::uniform_int_distribution<int> randx(0, MAP_WIDTH);
     std::uniform_int_distribution<int> randy(0, MAP_HEIGHT);
 
+    // Create random entities
     using namespace rl;
     for (int i = 0; i < NUM_ENTITIES; i++) {
-        int id   = picker(rng);
-        auto mob = json[id];
+        // pick random mob from entity table
+        auto mob = json[picker(rng)];
 
         ecs.create_entity()
             .with(Name{mob["name"]})
