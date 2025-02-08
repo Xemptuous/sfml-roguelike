@@ -22,14 +22,9 @@ void DrawSystem(RenderWindow& window, RenderTexture& render, Camera& camera, Gri
     window.clear();
     render.clear();
     render.setView(camera.view);
-
     RenderSystem(render, camera, grid, ecs);
-
     render.display();
-    const sf::Texture& texture = render.getTexture();
-    sf::Sprite sprite(texture);
-
-    window.draw(sprite);
+    window.draw(sf::Sprite(render.getTexture()));
     window.display();
 }
 

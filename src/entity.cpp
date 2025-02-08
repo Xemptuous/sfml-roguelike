@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <random>
+#include <unordered_map>
 #include <vector>
 
 extern const int MAP_WIDTH, MAP_HEIGHT;
@@ -18,37 +19,30 @@ enum AIBehavior {
     Aggressive,
 };
 
-void MovementSystem(ECS& ecs) {
+void MovementSystem(Grid& grid, ECS& ecs) {
+    auto& positionMap = ecs.component_manager.positionMap;
     for (Entity entity : ecs.entities()) {
         Position* pos = ecs.get_component<Position>(entity);
         Movement* mov = ecs.get_component<Movement>(entity);
 
-        pos->x += mov->dx;
-        pos->y += mov->dy;
-    }
-}
+        int newX = pos->x + mov->dx;
+        int newY = pos->y + mov->dy;
 
-void CollisionSystem(Grid& grid, ECS& ecs) {
-    Position* playerPos = ecs.get_component<Position>(Player);
-    Movement* playerMov = ecs.get_component<Movement>(Player);
-    for (Entity entity : ecs.entities()) {
-        Position* pos = ecs.get_component<Position>(entity);
-        Movement* mov = ecs.get_component<Movement>(entity);
-        int dest_x    = pos->x;
-        int dest_y    = pos->y;
-
-        if (!grid.isWalkable(dest_x, dest_y)) {
-            // undo movement if colliding
-            pos->x -= mov->dx;
-            pos->y -= mov->dy;
-
+        if (grid.isWalkable(newX, newY)) {
+            ecs.component_manager.update_position(entity, newX, newY);
+            pos->x = newX;
+            pos->y = newY;
+        } else {
+            ecs.component_manager.update_position(entity, pos->x, pos->y);
+            // pos->x -= mov->dx;
+            // pos->y -= mov->dy;
             mov->dx = 0;
             mov->dy = 0;
         }
     }
 }
 
-void AIMovementSystem(Grid& grid, ECS& ecs) {
+void AIMovementIntentSystem(Grid& grid, ECS& ecs) {
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<int> std_mov(-1, 1);
@@ -56,14 +50,14 @@ void AIMovementSystem(Grid& grid, ECS& ecs) {
 
     Position* playerPos = ecs.get_component<Position>(Player);
     Movement* playerMov = ecs.get_component<Movement>(Player);
-    int playerX         = playerPos->x + playerMov->dx;
-    int playerY         = playerPos->y + playerMov->dy;
+    int playerX         = playerPos->x;
+    int playerY         = playerPos->y;
 
     for (Entity entity : ecs.entities()) {
         if (entity == Player) continue;
 
-        Movement* mov = ecs.get_component<Movement>(entity);
         Position* pos = ecs.get_component<Position>(entity);
+        Movement* mov = ecs.get_component<Movement>(entity);
 
         switch (*ecs.get_component<AIBehavior>(entity)) {
             case Standard:
@@ -71,26 +65,12 @@ void AIMovementSystem(Grid& grid, ECS& ecs) {
                 mov->dy = std_mov(rng);
                 break;
             case Aggressive: {
-                Vision vision    = *ecs.get_component<Vision>(entity);
-                bool playerFound = false;
-
+                Vision vision = *ecs.get_component<Vision>(entity);
                 // search for player somewhere within this entity's vision range
-                // TODO: include object collision in LOS (e.g. walls)
-                for (int y = pos->y - vision; y < pos->y + vision; y++) {
-                    for (int x = pos->x - vision; x < pos->x + vision; x++) {
-                        if (x == playerX && y == playerY) {
-                            playerFound = true;
-                            break;
-                        }
-                    }
-                    if (playerFound) break;
-                }
-
-                if (playerFound) {
-                    // move towards the player
+                if (playerX >= pos->x - vision && playerY >= pos->y - vision
+                    && playerX <= pos->x + vision && playerY <= pos->y + vision) {
+                    // TODO: include object collision in LOS (e.g. walls)
                     PathFindingSystem(entity, Player, grid, ecs);
-                    // mov->dx = playerX > pos->x ? 1 : playerX < pos->x ? -1 : 0;
-                    // mov->dy = playerY > pos->y ? 1 : playerY < pos->y ? -1 : 0;
                 } else {
                     // randomly wander
                     mov->dx = std_mov(rng);
@@ -104,33 +84,57 @@ void AIMovementSystem(Grid& grid, ECS& ecs) {
 }
 
 void CombatSystem(ECS& ecs) {
-    Position* playerPos = ecs.get_component<Position>(Player);
-    Movement* playerMov = ecs.get_component<Movement>(Player);
+    // create map of current positions
+    auto& positionMap = ecs.component_manager.positionMap;
+    std::vector<Entity> to_destroy;
+    // BUG: player cant attack most of the time
+    // somewhat related to changes in MovementSystem
+    for (Entity attacker : ecs.entities()) {
+        Position* pos = ecs.get_component<Position>(attacker);
+        Movement* mov = ecs.get_component<Movement>(attacker);
+        Damage* dmg   = ecs.get_component<Damage>(attacker);
+        Name* attName = ecs.get_component<Name>(attacker);
 
-    for (Entity entity : ecs.entities()) {
-        if (entity == Player) continue;
-        Movement* mov = ecs.get_component<Movement>(entity);
-        Position* pos = ecs.get_component<Position>(entity);
+        int targetX = pos->x + mov->dx;
+        int targetY = pos->y + mov->dy;
 
-        // if moving into the player, do combat
-        if (pos->x == playerPos->x && pos->y == playerPos->y) {
-            Name* attName  = ecs.get_component<Name>(entity);
-            Name* defName  = ecs.get_component<Name>(Player);
-            Damage* damage = ecs.get_component<Damage>(entity);
-            Health* health = ecs.get_component<Health>(Player);
+        auto it = positionMap.find({targetX, targetY});
+        if (it == positionMap.end()) continue;
 
-            std::random_device dev;
-            std::mt19937 rng(dev());
-            std::uniform_int_distribution<int> rand_dmg(damage->min, damage->max);
-            int dmg = rand_dmg(rng);
+        Entity defender = it->second;
+        // FIXME: shouldnt be necessary
+        if (defender == attacker) continue;
 
-            health->curr -= dmg;
-            std::cout << *attName << " attacks " << *defName << " for " << dmg << '\n';
-            std::cout << *defName << " health: " << health->curr << "/" << health->max << '\n';
+        Health* defHealth = ecs.get_component<Health>(defender);
+        Name* defName     = ecs.get_component<Name>(defender);
 
-            pos->x -= mov->dx;
-            pos->y -= mov->dy;
+        if (!(defHealth && defName)) continue;
+
+        // Random damage calculation
+        std::random_device dev;
+        std::mt19937 rng(dev());
+        std::uniform_int_distribution<int> rand_dmg(dmg->min, dmg->max);
+        int damageDealt = rand_dmg(rng);
+
+        // Apply damage
+        defHealth->curr -= damageDealt;
+
+        std::cout << *attName << " attacks " << *defName << " for " << damageDealt << "damage!\n";
+        std::cout << *defName << " health: " << defHealth->curr << "/" << defHealth->max << "\n";
+
+        if (defHealth->curr <= 0) {
+            to_destroy.push_back(defender);
+            printf("DESTROYED\n");
+            continue;
         }
+
+        // Cancel movement after combat
+        mov->dx = 0;
+        mov->dy = 0;
+    }
+    for (Entity entity : to_destroy) {
+        if (entity == Player) continue;
+        ecs.destroy_entity(entity);
     }
 }
 
@@ -145,7 +149,26 @@ int heuristic(int a, int b, int w, int h) {
     return abs(ax - bx) + abs(ay - by);
 }
 
+const double ORTHOGONAL_COST = 1.0;
+const double DIAGONAL_COST   = 1.414;
+
+const std::pair<int, int> MOVEMENT_DIRECTIONS[8] = {
+    // Horizontal + Vertical
+    {-1, 0 },
+    {1,  0 },
+    {0,  -1},
+    {0,  1 },
+    // Diagonals
+    {-1, -1},
+    {1,  -1},
+    {-1, 1 },
+    {1,  1 }
+};
+
 void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
+    // WARNING: this causes decent lag.
+    // Improve performance.
+
     // start and end indices
     int s = 0, e = 0;
     Position* s_pos = ecs.get_component<Position>(start);
@@ -158,22 +181,6 @@ void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
         e = xy_idx(e_pos->x + e_mov->dx, e_pos->y + e_mov->dy);
     }
     if (s == e) return;
-
-    const double ORTHOGONAL_COST = 1.0;
-    const double DIAGONAL_COST   = 1.414;
-
-    const std::pair<int, int> MOVEMENT_DIRECTIONS[8] = {
-        // Horizontal + Vertical
-        {-1, 0 },
-        {1,  0 },
-        {0,  -1},
-        {0,  1 },
-        // Diagonals
-        {-1, -1},
-        {1,  -1},
-        {-1, 1 },
-        {1,  1 }
-    };
 
     int w = MAP_WIDTH, h = MAP_HEIGHT;
     int n = w * h;
@@ -272,6 +279,7 @@ void EntityGeneratorSystem(ECS& ecs) {
         Entity entity = ecs.create_entity();
         ecs.add_component(entity, Position{randx(rng), randy(rng)});
         ecs.add_component(entity, Movement{0, 0});
+        ecs.add_component(entity, AIBehavior::Aggressive);
         {
             Name name;
             Renderable render;
@@ -284,77 +292,77 @@ void EntityGeneratorSystem(ECS& ecs) {
                     render = Renderable(GoblinUnarmed, getColor(Green));
                     health = {10, 10};
                     damage = {1, 1};
-                    vision = 8;
+                    vision = 10;
                     break;
                 case 1:
                     name   = "Goblin";
                     render = Renderable(GoblinSword, getColor(Green));
                     health = {10, 10};
                     damage = {2, 3};
-                    vision = 8;
+                    vision = 10;
                     break;
                 case 2:
                     name   = "Goblin";
                     render = Renderable(GoblinBow, getColor(Green));
                     health = {10, 10};
                     damage = {3, 4};
-                    vision = 8;
+                    vision = 10;
                     break;
                 case 3:
                     name   = "Barbarian";
                     render = Renderable(BarbarianUnarmed, getColor(SandyBrown));
                     health = {15, 10};
                     damage = {2, 2};
-                    vision = 8;
+                    vision = 10;
                     break;
                 case 4:
                     name   = "Barbarian";
                     render = Renderable(BarbarianSword, getColor(SandyBrown));
                     health = {15, 10};
                     damage = {3, 4};
-                    vision = 8;
+                    vision = 10;
                     break;
                 case 5:
                     name   = "Barbarian";
                     render = Renderable(BarbarianBow, getColor(SandyBrown));
                     health = {15, 10};
                     damage = {4, 4};
-                    vision = 8;
+                    vision = 10;
                     break;
                 case 6:
                     name   = "Reptile";
                     render = Renderable(ReptileUnarmed, getColor(DarkGreen));
                     health = {20, 10};
                     damage = {2, 2};
-                    vision = 8;
+                    vision = 10;
                     break;
                 case 7:
                     name   = "Reptile";
                     render = Renderable(ReptileSword, getColor(DarkGreen));
                     health = {20, 10};
                     damage = {3, 4};
-                    vision = 8;
+                    vision = 10;
                     break;
                 case 8:
                     name   = "Reptile";
                     render = Renderable(ReptileBow, getColor(DarkGreen));
                     health = {20, 10};
                     damage = {4, 4};
-                    vision = 8;
+                    vision = 10;
                     break;
                 case 9:
                     name   = "Demon";
                     render = Renderable(DemonUnarmed, getColor(Red));
                     health = {50, 10};
                     damage = {4, 4};
-                    vision = 8;
+                    vision = 10;
                     break;
                 default:
                     name   = "Demon";
                     render = Renderable(DemonAxe, getColor(Red));
                     health = {50, 10};
                     damage = {7, 7};
-                    vision = 8;
+                    vision = 10;
                     break;
             }
             ecs.add_component(entity, name);
@@ -363,6 +371,5 @@ void EntityGeneratorSystem(ECS& ecs) {
             ecs.add_component(entity, damage);
             ecs.add_component(entity, vision);
         }
-        ecs.add_component(entity, AIBehavior::Aggressive);
     }
 }

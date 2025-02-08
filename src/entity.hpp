@@ -16,9 +16,9 @@ static const Entity Player = 0;
 
 // Components
 typedef std::string Name;
-struct Position {
-    int x, y;
-};
+// struct Position {
+//     int x, y;
+// };
 struct Movement {
     int dx, dy;
 };
@@ -29,6 +29,7 @@ struct Health {
 struct Damage {
     int min, max;
 };
+typedef bool PlayerFound;
 
 struct Renderable {
     sf::Sprite sprite;
@@ -74,9 +75,8 @@ struct Renderable {
         zIndex(z) {}
 };
 
-void MovementSystem(ECS&);
-void AIMovementSystem(Grid&, ECS&);
-void CollisionSystem(Grid&, ECS&);
+void MovementSystem(Grid&, ECS&);
+void AIMovementIntentSystem(Grid&, ECS&);
 void LineOfSightSystem(ECS&);
 void PathFindingSystem(Entity start, Entity end, Grid&, ECS&);
 void CombatSystem(ECS&);

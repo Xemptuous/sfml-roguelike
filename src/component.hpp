@@ -8,6 +8,16 @@ using Entity = std::uint64_t;
 #include <typeindex>
 #include <unordered_map>
 
+struct Position {
+    int x, y;
+};
+
+struct pair_hash {
+    std::size_t operator()(const std::pair<int, int>& p) const {
+        return std::hash<int>()(p.first) ^ (std::hash<int>()(p.second) << 1);
+    }
+};
+
 // Base interface for component storage
 struct IComponentStorage {
     virtual ~IComponentStorage()       = default;
@@ -29,6 +39,7 @@ template <typename T> struct ComponentStorage : IComponentStorage {
 // ComponentManager to handle all component types
 struct ComponentManager {
     std::unordered_map<std::type_index, std::unique_ptr<IComponentStorage>> storages;
+    std::unordered_map<std::pair<int, int>, Entity, pair_hash> positionMap;
 
     // Get or create storage for component type T
     template <typename T> ComponentStorage<T>& get_storage() {
@@ -39,14 +50,50 @@ struct ComponentManager {
         }
         return *static_cast<ComponentStorage<T>*>(storages[index].get());
     };
+
     template <typename T> void add_component(Entity entity, const T& component) {
         get_storage<T>().add(entity, component);
+        if constexpr (std::is_same<T, Position>::value) {
+            positionMap[{component.x, component.y}] = entity;
+        }
     };
+
     template <typename T> T* get_component(Entity entity) { return get_storage<T>().get(entity); };
-    template <typename T> void remove_component(Entity entity) { get_storage<T>().remove(entity); };
+    template <typename T> void remove_component(Entity entity) {
+        if constexpr (std::is_same<T, Position>::value) {
+            Position* pos = get_component<Position>(entity);
+            if (pos) {
+                positionMap.erase({pos->x, pos->y});
+            }
+        }
+        get_storage<T>().remove(entity);
+    };
 
     void remove_all_components(Entity entity) {
         for (const auto& pair : storages)
             pair.second->remove(entity);
+
+        // Clean up positionMap
+        for (auto it = positionMap.begin(); it != positionMap.end();) {
+            if (it->second == entity) {
+                it = positionMap.erase(it);
+            } else {
+                ++it;
+            }
+        }
     };
+
+    void update_position(Entity entity, int newX, int newY) {
+        Position* pos = get_component<Position>(entity);
+        if (pos) {
+            // Remove old position
+            positionMap.erase({pos->x, pos->y});
+
+            // Update position & add new mapping
+            pos->x = newX;
+            pos->y = newY;
+
+            positionMap[{newX, newY}] = entity;
+        }
+    }
 };
