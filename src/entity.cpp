@@ -29,9 +29,16 @@ void MovementSystem(Grid& grid, ECS& ecs) {
         int newY = pos->y + mov->dy;
 
         if (grid.isWalkable(newX, newY)) {
-            ecs.component_manager.update_position(entity, newX, newY);
-            pos->x = newX;
-            pos->y = newY;
+            if (positionMap.find({newX, newY}) != positionMap.end()) {
+                newX    -= pos->x;
+                newY    -= pos->y;
+                mov->dx  = 0;
+                mov->dy  = 0;
+            } else {
+                ecs.component_manager.update_position(entity, newX, newY);
+                pos->x = newX;
+                pos->y = newY;
+            };
         } else {
             ecs.component_manager.update_position(entity, pos->x, pos->y);
             // pos->x -= mov->dx;
@@ -90,6 +97,10 @@ void CombatSystem(ECS& ecs) {
     // BUG: player cant attack most of the time
     // somewhat related to changes in MovementSystem
     for (Entity attacker : ecs.entities()) {
+        // don't process entity if it's destroyed
+        for (Entity destroyed : to_destroy)
+            if (attacker == destroyed) continue;
+
         Position* pos = ecs.get_component<Position>(attacker);
         Movement* mov = ecs.get_component<Movement>(attacker);
         Damage* dmg   = ecs.get_component<Damage>(attacker);
@@ -104,6 +115,7 @@ void CombatSystem(ECS& ecs) {
         Entity defender = it->second;
         // FIXME: shouldnt be necessary
         if (defender == attacker) continue;
+        if (defender != Player && attacker != Player) continue;
 
         Health* defHealth = ecs.get_component<Health>(defender);
         Name* defName     = ecs.get_component<Name>(defender);
@@ -122,13 +134,9 @@ void CombatSystem(ECS& ecs) {
         ecs.component_manager.eventLogs.push_back(
             *attName + " attacks " + *defName + " for " + std::to_string(damageDealt) + " damage!"
         );
-        // std::cout << *attName << " attacks " << *defName << " for " << damageDealt <<
-        // "damage!\n"; std::cout << *defName << " health: " << defHealth->curr << "/" <<
-        // defHealth->max << "\n";
 
         if (defHealth->curr <= 0) {
             to_destroy.push_back(defender);
-            printf("DESTROYED\n");
             continue;
         }
 
@@ -170,9 +178,6 @@ const std::pair<int, int> MOVEMENT_DIRECTIONS[8] = {
 };
 
 void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
-    // WARNING: this causes decent lag.
-    // Improve performance.
-
     // start and end indices
     int s = 0, e = 0;
     Position* s_pos = ecs.get_component<Position>(start);

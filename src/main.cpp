@@ -83,6 +83,7 @@ int main(int argc, char** argv) {
                 || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
                 window.close();
             } else if (event->is<sf::Event::KeyPressed>()) {
+                printf("KEY PRESSED\n");
                 wait = false;
                 using namespace sf::Keyboard;
                 if (isKeyPressed(Key::A)) {
@@ -96,28 +97,46 @@ int main(int argc, char** argv) {
             }
 
             if (!wait) {
-                AIMovementIntentSystem(grid, ecs);
-                InputSystem(ecs);
-                CombatSystem(ecs);
-                Health* hp = ecs.get_component<Health>(Player);
-                if (hp->curr <= 0) {
-                    printf("YOU DIED!\nBYE!\n");
-                    return 0;
-                }
-                MovementSystem(grid, ecs);
-                CameraSystem(camera, ecs);
-
-                for (Entity entity : ecs.entities()) {
-                    Movement* mov = ecs.get_component<Movement>(entity);
-
-                    mov->dx = 0;
-                    mov->dy = 0;
-                }
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                // AIMovementIntentSystem(grid, ecs);
+                // InputSystem(ecs);
+                // CombatSystem(ecs);
+                // Health* hp = ecs.get_component<Health>(Player);
+                // if (hp->curr <= 0) {
+                //     printf("YOU DIED!\nBYE!\n");
+                //     return 0;
+                // }
+                // MovementSystem(grid, ecs);
+                // CameraSystem(camera, ecs);
+                //
+                // for (Entity entity : ecs.entities()) {
+                //     Movement* mov = ecs.get_component<Movement>(entity);
+                //
+                //     mov->dx = 0;
+                //     mov->dy = 0;
+                // }
+                // std::this_thread::sleep_for(std::chrono::milliseconds(30));
             }
         }
 
         if (!wait) {
+            AIMovementIntentSystem(grid, ecs);
+            InputSystem(ecs);
+            CombatSystem(ecs);
+            Health* hp = ecs.get_component<Health>(Player);
+            if (hp->curr <= 0) {
+                printf("YOU DIED!\nBYE!\n");
+                return 0;
+            }
+            MovementSystem(grid, ecs);
+            CameraSystem(camera, ecs);
+
+            for (Entity entity : ecs.entities()) {
+                Movement* mov = ecs.get_component<Movement>(entity);
+
+                mov->dx = 0;
+                mov->dy = 0;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(30));
             DrawSystem(window, renderTexture, font, camera, grid, ecs);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
             wait = true;
