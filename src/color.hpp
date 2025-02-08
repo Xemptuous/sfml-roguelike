@@ -1,5 +1,6 @@
 #include <SFML/Graphics/Color.hpp>
 #include <string>
+#include <unordered_map>
 
 namespace rl {
 enum Color {
@@ -55,6 +56,32 @@ static const sf::Color COLOR_ARRAY[20]{
 static sf::Color getColor(rl::Color color) {
     return COLOR_ARRAY[color];
 }
+
+static const std::unordered_map<std::string, sf::Color> stringColorMap = {
+    {"green",        COLOR_ARRAY[rl::Green]      },
+    {"red",          COLOR_ARRAY[rl::Red]        },
+    {"sandy_brown",  COLOR_ARRAY[rl::SandyBrown] },
+    {"white",        COLOR_ARRAY[rl::White]      },
+    {"black",        COLOR_ARRAY[rl::Black]      },
+    {"red",          COLOR_ARRAY[rl::Red]        },
+    {"green",        COLOR_ARRAY[rl::Green]      },
+    {"yellow",       COLOR_ARRAY[rl::Yellow]     },
+    {"blue",         COLOR_ARRAY[rl::Blue]       },
+    {"cyan",         COLOR_ARRAY[rl::Cyan]       },
+    {"magenta",      COLOR_ARRAY[rl::Magenta]    },
+    {"black_opaque", COLOR_ARRAY[rl::BlackOpaque]},
+    {"silver",       COLOR_ARRAY[rl::Silver]     },
+    {"gray",         COLOR_ARRAY[rl::Gray]       },
+    {"dark_red",     COLOR_ARRAY[rl::DarkRed]    },
+    {"dark_green",   COLOR_ARRAY[rl::DarkGreen]  },
+    {"dark_yellow",  COLOR_ARRAY[rl::DarkYellow] },
+    {"dark_blue",    COLOR_ARRAY[rl::DarkBlue]   },
+    {"dark_cyan",    COLOR_ARRAY[rl::DarkCyan]   },
+    {"dark_magenta", COLOR_ARRAY[rl::DarkMagenta]},
+    {"sandy_brown",  COLOR_ARRAY[rl::SandyBrown] },
+    {"tan",          COLOR_ARRAY[rl::Tan]        },
+    {"saddle_brown", COLOR_ARRAY[rl::SaddleBrown]},
+};
 
 static sf::Color strToColor(std::string s) {
     using namespace rl;

@@ -12,7 +12,7 @@ using Entity = uint64_t;
 
 const Entity MAX_ENTITIES = 10000;
 
-static const Entity Player = 0;
+static Entity Player = 0;
 
 // Components
 typedef std::string Name;

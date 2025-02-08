@@ -271,25 +271,24 @@ void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
 };
 
 void EntityGeneratorSystem(ECS& ecs) {
+    using json = nlohmann::json;
     // Create Player
-    ecs.create_entity()
-        .with(Name{"Player"})
-        .with(Position{MAP_WIDTH / 2, MAP_HEIGHT / 2})
-        .with(Renderable(PlayerMaleStanding))
-        .with(Movement{0, 0})
-        .with(Health{100, 100})
-        .with(Damage{10, 10})
-        .build();
+    Player     = ecs.create_entity()
+                 .with(Name{"Player"})
+                 .with(Position{MAP_WIDTH / 2, MAP_HEIGHT / 2})
+                 .with(Renderable(PlayerMaleStanding))
+                 .with(Movement{0, 0})
+                 .with(Health{100, 100})
+                 .with(Damage{10, 10})
+                 .build();
 
     // Read Entity Table
-    std::ifstream fJson("entities.json");
-    std::stringstream buffer;
-    buffer << fJson.rdbuf();
-    auto json = nlohmann::json::parse(buffer.str());
+    std::ifstream f("entities.json");
+    json data = json::parse(f);
 
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<int> picker(0, json.size() - 1);
+    std::uniform_int_distribution<int> picker(0, data.size() - 1);
     std::uniform_int_distribution<int> randx(0, MAP_WIDTH);
     std::uniform_int_distribution<int> randy(0, MAP_HEIGHT);
 
@@ -297,12 +296,12 @@ void EntityGeneratorSystem(ECS& ecs) {
     using namespace rl;
     for (int i = 0; i < NUM_ENTITIES; i++) {
         // pick random mob from entity table
-        auto mob = json[picker(rng)];
+        auto mob = data[picker(rng)];
 
         ecs.create_entity()
             .with(Name{mob["name"]})
             .with(Position{randx(rng), randy(rng)})
-            .with(Renderable(strToSpriteTile(mob["name"]), strToColor(mob["color"])))
+            .with(Renderable(stringSpriteMap.at(mob["name"]), stringColorMap.at(mob["color"])))
             .with(Movement{0, 0})
             .with(Health{mob["health"], mob["health"]})
             .with(Damage{mob["damage"], mob["damage"]})

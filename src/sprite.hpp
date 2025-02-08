@@ -165,6 +165,12 @@ static const std::unordered_map<SpriteTiles, sf::Vector2i> ASCII_COORDINATES = {
     {DemonAxe,           sf::Vector2i({4, 6})  }, // d
 };
 
+static const std::unordered_map<std::string, SpriteTiles> stringSpriteMap = {
+    {"barbarian", BarbarianUnarmed},
+    {"goblin",    GoblinUnarmed   },
+    {"demon",     DemonUnarmed    },
+};
+
 static std::vector<sf::Sprite> SPRITE_REGISTRY(NUM_SPRITES, sf::Sprite(SPRITE_SHEET));
 
 int SpritesheetLoadingSystem();
