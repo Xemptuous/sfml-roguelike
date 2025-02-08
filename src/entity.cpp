@@ -152,13 +152,15 @@ void CombatSystem(ECS& ecs) {
 
 void LineOfSightSystem(ECS& ecs) {}
 
-// Helper function to calculate Manhattan distance heuristic
-int heuristic(int a, int b, int w, int h) {
+int chebyshevDistance(int a, int b, int w, int h) {
     int ax = a % w;
     int ay = a / w;
     int bx = b % w;
     int by = b / w;
-    return abs(ax - bx) + abs(ay - by);
+    int dx = ax - bx;
+    int dy = ay - by;
+    return (dx + dy) - 1 * std::min(dx, dy);
+    // return abs(ax - bx) + abs(ay - by);
 }
 
 const double ORTHOGONAL_COST = 1.0;
@@ -195,12 +197,12 @@ void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
     int n = w * h;
 
     std::vector<int> came_from(n, -1);
-    std::vector<int> g_score(n, std::numeric_limits<int>::max());
-    std::vector<int> f_score(n, std::numeric_limits<int>::max());
-    std::vector<bool> visited(n, false);
+    std::vector<double> g_score(n, std::numeric_limits<double>::infinity());
+    std::vector<double> f_score(n, std::numeric_limits<double>::infinity());
+    std::vector<uint8_t> visited(n, 0);
 
     g_score[s] = 0;
-    f_score[s] = heuristic(s, e, w, h);
+    f_score[s] = chebyshevDistance(s, e, w, h);
 
     auto cmp = [&](int left, int right) { return f_score[left] > f_score[right]; };
     std::priority_queue<int, std::vector<int>, decltype(cmp)> open_set(cmp);
@@ -223,10 +225,11 @@ void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
             // Move entity in specified direction along calculated path
             s_mov->dx = new_loc.x - s_pos->x;
             s_mov->dy = new_loc.y - s_pos->y;
+            return;
         }
 
         // Mark the current node as visited
-        visited[current] = true;
+        visited[current] = 1;
         int current_x    = current % w;
         int current_y    = current / w;
 
@@ -236,20 +239,8 @@ void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
             int neighbor_y = current_y + dy;
             int neighbor   = neighbor_y * w + neighbor_x;
 
-            // Ensure that we don't go out of bounds
-            if (dx == -1 && current % w == 0) continue;    // Left, no wraparound
-            if (dx == 1 && current % w == w - 1) continue; // Right, no wraparound
-            if (dy == -w && current < w) continue;         // Up, no wraparound at the top
-            if (dy == w && current >= n - w) continue;     // Down, no wraparound at the bottom
-
-            // Skip OOB or walls
-            {
-                sf::Vector2i xy = idx_xy(neighbor);
-                if (neighbor_x < 0 || neighbor_x >= w || neighbor_y < 0 || neighbor_y >= h) {
-                    continue;
-                }
-                if (!grid.isWalkable(xy.x, xy.y)) continue;
-            }
+            if (neighbor_x < 0 || neighbor_x >= w || neighbor_y < 0 || neighbor_y >= h) continue;
+            if (!grid.isWalkable(neighbor_x, neighbor_y)) continue;
 
             bool is_diagonal = abs(dx) + abs(dy) == 2;
             // Prevent diagonal movement through corners
@@ -267,7 +258,7 @@ void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
             if (tentative_g_score < g_score[neighbor]) {
                 came_from[neighbor] = current;
                 g_score[neighbor]   = tentative_g_score;
-                f_score[neighbor]   = g_score[neighbor] + heuristic(neighbor, e, w, h);
+                f_score[neighbor]   = g_score[neighbor] + chebyshevDistance(neighbor, e, w, h);
                 if (!visited[neighbor]) {
                     open_set.push(neighbor);
                 }
