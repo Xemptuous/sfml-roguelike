@@ -1,7 +1,10 @@
 #include "entity.hpp"
 
 #include "grid.hpp"
+#include "json.hpp"
+#include "sprite.hpp"
 
+#include <fstream>
 #include <iostream>
 #include <random>
 #include <unordered_map>
@@ -268,108 +271,32 @@ void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
 };
 
 void EntityGeneratorSystem(ECS& ecs) {
+
+    std::ifstream fJson("entities.json");
+    std::stringstream buffer;
+    buffer << fJson.rdbuf();
+    auto json = nlohmann::json::parse(buffer.str());
+
     std::random_device dev;
     std::mt19937 rng(dev());
-    std::uniform_int_distribution<int> picker(0, 10);
+    std::uniform_int_distribution<int> picker(0, json.size() - 1);
     std::uniform_int_distribution<int> randx(0, MAP_WIDTH);
     std::uniform_int_distribution<int> randy(0, MAP_HEIGHT);
 
     using namespace rl;
     for (int i = 0; i < NUM_ENTITIES; i++) {
-        Entity entity = ecs.create_entity();
-        ecs.add_component(entity, Position{randx(rng), randy(rng)});
-        ecs.add_component(entity, Movement{0, 0});
-        ecs.add_component(entity, AIBehavior::Aggressive);
-        {
-            Name name;
-            Renderable render;
-            Health health;
-            Damage damage;
-            Vision vision;
-            switch (picker(rng)) {
-                case 0:
-                    name   = "Goblin";
-                    render = Renderable(GoblinUnarmed, getColor(Green));
-                    health = {10, 10};
-                    damage = {1, 1};
-                    vision = 10;
-                    break;
-                case 1:
-                    name   = "Goblin";
-                    render = Renderable(GoblinSword, getColor(Green));
-                    health = {10, 10};
-                    damage = {2, 3};
-                    vision = 10;
-                    break;
-                case 2:
-                    name   = "Goblin";
-                    render = Renderable(GoblinBow, getColor(Green));
-                    health = {10, 10};
-                    damage = {3, 4};
-                    vision = 10;
-                    break;
-                case 3:
-                    name   = "Barbarian";
-                    render = Renderable(BarbarianUnarmed, getColor(SandyBrown));
-                    health = {15, 10};
-                    damage = {2, 2};
-                    vision = 10;
-                    break;
-                case 4:
-                    name   = "Barbarian";
-                    render = Renderable(BarbarianSword, getColor(SandyBrown));
-                    health = {15, 10};
-                    damage = {3, 4};
-                    vision = 10;
-                    break;
-                case 5:
-                    name   = "Barbarian";
-                    render = Renderable(BarbarianBow, getColor(SandyBrown));
-                    health = {15, 10};
-                    damage = {4, 4};
-                    vision = 10;
-                    break;
-                case 6:
-                    name   = "Reptile";
-                    render = Renderable(ReptileUnarmed, getColor(DarkGreen));
-                    health = {20, 10};
-                    damage = {2, 2};
-                    vision = 10;
-                    break;
-                case 7:
-                    name   = "Reptile";
-                    render = Renderable(ReptileSword, getColor(DarkGreen));
-                    health = {20, 10};
-                    damage = {3, 4};
-                    vision = 10;
-                    break;
-                case 8:
-                    name   = "Reptile";
-                    render = Renderable(ReptileBow, getColor(DarkGreen));
-                    health = {20, 10};
-                    damage = {4, 4};
-                    vision = 10;
-                    break;
-                case 9:
-                    name   = "Demon";
-                    render = Renderable(DemonUnarmed, getColor(Red));
-                    health = {50, 10};
-                    damage = {4, 4};
-                    vision = 10;
-                    break;
-                default:
-                    name   = "Demon";
-                    render = Renderable(DemonAxe, getColor(Red));
-                    health = {50, 10};
-                    damage = {7, 7};
-                    vision = 10;
-                    break;
-            }
-            ecs.add_component(entity, name);
-            ecs.add_component(entity, render);
-            ecs.add_component(entity, health);
-            ecs.add_component(entity, damage);
-            ecs.add_component(entity, vision);
-        }
+        int id   = picker(rng);
+        auto mob = json[id];
+
+        ecs.create_entity()
+            .with(Name{mob["name"]})
+            .with(Position{randx(rng), randy(rng)})
+            .with(Renderable(strToSpriteTile(mob["name"]), strToColor(mob["color"])))
+            .with(Movement{0, 0})
+            .with(Health{mob["health"], mob["health"]})
+            .with(Damage{mob["damage"], mob["damage"]})
+            .with(Vision{mob["vision"]})
+            .with(mob["behavior"] == "aggressive" ? Aggressive : Standard)
+            .build();
     }
 }

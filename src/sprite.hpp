@@ -3,6 +3,7 @@
 #include <SFML/Graphics/Image.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -169,3 +170,4 @@ static std::vector<sf::Sprite> SPRITE_REGISTRY(NUM_SPRITES, sf::Sprite(SPRITE_SH
 int SpritesheetLoadingSystem();
 void SpriteGenerator();
 sf::Sprite* getSpriteTile(SpriteTiles tile);
+SpriteTiles strToSpriteTile(std::string c);

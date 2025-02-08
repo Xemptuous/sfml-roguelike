@@ -1,4 +1,5 @@
 #include <SFML/Graphics/Color.hpp>
+#include <string>
 
 namespace rl {
 enum Color {
@@ -53,4 +54,32 @@ static const sf::Color COLOR_ARRAY[20]{
 
 static sf::Color getColor(rl::Color color) {
     return COLOR_ARRAY[color];
+}
+
+static sf::Color strToColor(std::string s) {
+    using namespace rl;
+    if (s == "green") return COLOR_ARRAY[Green];
+    if (s == "red") return COLOR_ARRAY[Red];
+    if (s == "sandy_brown") return COLOR_ARRAY[SandyBrown];
+    if (s == "white") return COLOR_ARRAY[White];
+    if (s == "black") return COLOR_ARRAY[Black];
+    if (s == "red") return COLOR_ARRAY[Red];
+    if (s == "green") return COLOR_ARRAY[Green];
+    if (s == "yellow") return COLOR_ARRAY[Yellow];
+    if (s == "blue") return COLOR_ARRAY[Blue];
+    if (s == "cyan") return COLOR_ARRAY[Cyan];
+    if (s == "magenta") return COLOR_ARRAY[Magenta];
+    if (s == "black_opaque") return COLOR_ARRAY[BlackOpaque];
+    if (s == "silver") return COLOR_ARRAY[Silver];
+    if (s == "gray") return COLOR_ARRAY[Gray];
+    if (s == "dark_red") return COLOR_ARRAY[DarkRed];
+    if (s == "dark_green") return COLOR_ARRAY[DarkGreen];
+    if (s == "dark_yellow") return COLOR_ARRAY[DarkYellow];
+    if (s == "dark_blue") return COLOR_ARRAY[DarkBlue];
+    if (s == "dark_cyan") return COLOR_ARRAY[DarkCyan];
+    if (s == "dark_magenta") return COLOR_ARRAY[DarkMagenta];
+    if (s == "sandy_brown") return COLOR_ARRAY[SandyBrown];
+    if (s == "tan") return COLOR_ARRAY[Tan];
+    if (s == "saddle_brown") return COLOR_ARRAY[SaddleBrown];
+    return COLOR_ARRAY[Black];
 }

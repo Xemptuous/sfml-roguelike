@@ -36,6 +36,9 @@ endif()
 include_directories(include)
 
 file(GLOB main_src CONFIGURE_DEPENDS "src/*.cpp")
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/src/entities.json
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+)
 
 add_executable(main ${main_src})
 target_link_libraries(main PRIVATE SFML::Graphics SFML::Audio SFML::Network SFML::System SFML::Window)

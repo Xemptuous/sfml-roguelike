@@ -21,11 +21,13 @@ struct EntityManager {
         active_entities.insert(id);
         return id;
     };
+
     void destroy_entity(Entity entity) {
         active_entities.erase(entity);
         recycled_ids.push(entity);
         // You would also remove associated components here
     };
+
     bool is_active(Entity entity) const {
         return active_entities.find(entity) != active_entities.end();
     }

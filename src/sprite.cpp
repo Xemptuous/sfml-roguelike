@@ -62,3 +62,10 @@ void SpriteGenerator() {
 Sprite* getSpriteTile(SpriteTiles tile) {
     return &SPRITE_REGISTRY[tile];
 }
+
+SpriteTiles strToSpriteTile(std::string s) {
+    if (s == "barbarian") return BarbarianUnarmed;
+    if (s == "goblin") return GoblinUnarmed;
+    if (s == "demon") return DemonUnarmed;
+    return None;
+};

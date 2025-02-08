@@ -1,0 +1,29 @@
+[
+  {
+    "name": "goblin",
+    "char": "g",
+    "color": "green",
+    "behavior": "aggressive",
+    "health": 10,
+    "damage": 1,
+    "vision": 10
+  },
+  {
+    "name": "barbarian",
+    "char": "b",
+    "color": "sandy_brown",
+    "behavior": "aggressive",
+    "health": 15,
+    "damage": 2,
+    "vision": 10
+  },
+  {
+    "name": "demon",
+    "char": "d",
+    "color": "red",
+    "behavior": "aggressive",
+    "health": 20,
+    "damage": 4,
+    "vision": 10
+  }
+]
