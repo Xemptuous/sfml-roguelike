@@ -17,7 +17,9 @@ Options OPTIONS;
 Vector2f SIZE_FACTOR{};
 Vector2f SCALE_FACTOR{};
 
-void DrawSystem(RenderWindow& window, RenderTexture& render, Camera& camera, Grid& grid, ECS& ecs) {
+void DrawSystem(
+    RenderWindow& window, RenderTexture& render, Font& font, Camera& camera, Grid& grid, ECS& ecs
+) {
     // printf("DrawSystem\n");
     window.clear();
     render.clear();
@@ -25,6 +27,7 @@ void DrawSystem(RenderWindow& window, RenderTexture& render, Camera& camera, Gri
     RenderSystem(render, camera, grid, ecs);
     render.display();
     window.draw(sf::Sprite(render.getTexture()));
+    UISystem(window, font, camera, ecs);
     window.display();
 }
 
@@ -67,6 +70,54 @@ void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS&
         bg->setColor(sf::Color::Black);
         renderTexture.draw(*bg);
         renderTexture.draw(renderable.sprite);
+    }
+}
+
+void UISystem(RenderWindow& window, Font& font, Camera& camera, ECS& ecs) {
+    camera.view.setViewport({
+        {0.f, 0.f },
+        {1.f, 0.8f}
+    });
+
+    // draw base
+    unsigned int rh       = 400;
+    unsigned int rw       = RENDER_WIDTH;
+    unsigned int rect_top = RENDER_HEIGHT - rh;
+    sf::RectangleShape rect({(float)rw, (float)rh});
+    rect.setPosition({0.f, (float)rect_top});
+    rect.setFillColor(sf::Color::Black);
+    window.draw(rect);
+
+    float top_margin = 20;
+
+    // Player HP
+    Health* hp = ecs.get_component<Health>(Player);
+    sf::Text php(font);
+    php.setString("Player HP: " + std::to_string(hp->curr) + "/" + std::to_string(hp->max));
+    php.setCharacterSize(32);
+    php.setFillColor(sf::Color::White);
+    php.setStyle(sf::Text::Bold);
+    php.setPosition({20.f, rect_top + top_margin});
+    window.draw(php);
+
+    // Event Log
+    // TODO: add "scrolling" to the logs to fit in screen
+    // also consider sizing based on window
+    std::vector<std::string>& logs = ecs.component_manager.eventLogs;
+
+    int line_height   = 26;
+    float left_margin = 900;
+
+    int i = 0;
+    for (std::string event : ecs.component_manager.eventLogs) {
+        sf::Text log(font);
+        log.setString(event);
+        log.setCharacterSize(32);
+        log.setFillColor(sf::Color::White);
+        log.setStyle(sf::Text::Regular);
+        log.setPosition({rw - left_margin, rect_top + top_margin + line_height * i});
+        i++;
+        window.draw(log);
     }
 }
 

@@ -7,6 +7,7 @@ using Entity = std::uint64_t;
 #include <memory>
 #include <typeindex>
 #include <unordered_map>
+#include <vector>
 
 struct Position {
     int x, y;
@@ -40,6 +41,7 @@ template <typename T> struct ComponentStorage : IComponentStorage {
 struct ComponentManager {
     std::unordered_map<std::type_index, std::unique_ptr<IComponentStorage>> storages;
     std::unordered_map<std::pair<int, int>, Entity, pair_hash> positionMap;
+    std::vector<std::string> eventLogs;
 
     // Get or create storage for component type T
     template <typename T> ComponentStorage<T>& get_storage() {

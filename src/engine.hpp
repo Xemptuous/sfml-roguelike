@@ -21,7 +21,8 @@ struct Camera {
 };
 
 // Systems
-void DrawSystem(RenderWindow&, RenderTexture&, Camera&, Grid&, ECS&);
+void DrawSystem(RenderWindow&, RenderTexture&, Font&, Camera&, Grid&, ECS&);
+void UISystem(RenderWindow&, Font&, Camera&, ECS&);
 void RenderSystem(RenderTexture&, Camera&, Grid&, ECS&);
 void CameraSystem(Camera&, ECS&);
 

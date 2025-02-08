@@ -119,8 +119,12 @@ void CombatSystem(ECS& ecs) {
         // Apply damage
         defHealth->curr -= damageDealt;
 
-        std::cout << *attName << " attacks " << *defName << " for " << damageDealt << "damage!\n";
-        std::cout << *defName << " health: " << defHealth->curr << "/" << defHealth->max << "\n";
+        ecs.component_manager.eventLogs.push_back(
+            *attName + " attacks " + *defName + " for " + std::to_string(damageDealt) + " damage!"
+        );
+        // std::cout << *attName << " attacks " << *defName << " for " << damageDealt <<
+        // "damage!\n"; std::cout << *defName << " health: " << defHealth->curr << "/" <<
+        // defHealth->max << "\n";
 
         if (defHealth->curr <= 0) {
             to_destroy.push_back(defender);

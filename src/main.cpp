@@ -37,6 +37,11 @@ int main(int argc, char** argv) {
     // Window setup
     sf::RenderWindow window;
     sf::RenderTexture renderTexture({RENDER_WIDTH, RENDER_HEIGHT});
+    sf::Font font;
+    if (!font.openFromFile("../include/DejaVuSans.ttf")) {
+        printf("Could not load font file!\n");
+        return 1;
+    }
 
     window.create(
         sf::VideoMode({RENDER_WIDTH, RENDER_HEIGHT}), "My Window", sf::Style::Default,
@@ -70,7 +75,7 @@ int main(int argc, char** argv) {
     BuildingGeneratorSystem(grid);
 
     bool wait = false;
-    DrawSystem(window, renderTexture, camera, grid, ecs);
+    DrawSystem(window, renderTexture, font, camera, grid, ecs);
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -86,7 +91,7 @@ int main(int argc, char** argv) {
                 }
             } else if (event->is<sf::Event::Resized>()) {
                 ResizeSystem(camera, grid, ecs);
-                DrawSystem(window, renderTexture, camera, grid, ecs);
+                DrawSystem(window, renderTexture, font, camera, grid, ecs);
                 wait = true;
             }
 
@@ -113,7 +118,7 @@ int main(int argc, char** argv) {
         }
 
         if (!wait) {
-            DrawSystem(window, renderTexture, camera, grid, ecs);
+            DrawSystem(window, renderTexture, font, camera, grid, ecs);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
             wait = true;
         }
