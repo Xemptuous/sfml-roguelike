@@ -1,5 +1,6 @@
 #include "engine.hpp"
 #include "entity.hpp"
+#include "item.hpp"
 #include "sprite.hpp"
 
 #include <SFML/Graphics.hpp>
@@ -61,6 +62,7 @@ int main(int argc, char** argv) {
     // Create Entities
     ECS ecs = ECS{};
     EntityGeneratorSystem(ecs);
+    ItemGeneratorSystem(ecs);
 
     // Create Map
     Grid grid = Grid{};
@@ -76,7 +78,6 @@ int main(int argc, char** argv) {
                 || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
                 window.close();
             } else if (event->is<sf::Event::KeyPressed>()) {
-                printf("KEY PRESSED\n");
                 wait = false;
                 using namespace sf::Keyboard;
                 if (isKeyPressed(Key::A)) {
@@ -89,26 +90,8 @@ int main(int argc, char** argv) {
                 wait = true;
             }
 
-            if (!wait) {
-                // AIMovementIntentSystem(grid, ecs);
-                // InputSystem(ecs);
-                // CombatSystem(ecs);
-                // Health* hp = ecs.get_component<Health>(Player);
-                // if (hp->curr <= 0) {
-                //     printf("YOU DIED!\nBYE!\n");
-                //     return 0;
-                // }
-                // MovementSystem(grid, ecs);
-                // CameraSystem(camera, ecs);
-                //
-                // for (Entity entity : ecs.entities()) {
-                //     Movement* mov = ecs.get_component<Movement>(entity);
-                //
-                //     mov->dx = 0;
-                //     mov->dy = 0;
-                // }
-                // std::this_thread::sleep_for(std::chrono::milliseconds(30));
-            }
+            // if (!wait) {
+            // }
         }
 
         if (!wait) {
@@ -125,6 +108,7 @@ int main(int argc, char** argv) {
 
             for (Entity entity : ecs.entities()) {
                 Movement* mov = ecs.get_component<Movement>(entity);
+                if (!mov) continue;
 
                 mov->dx = 0;
                 mov->dy = 0;

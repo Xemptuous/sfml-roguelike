@@ -1,0 +1,40 @@
+[
+  {
+    "name": "Wood Sword",
+    "description": "A simple wooden sword",
+    "weight": 1.0,
+    "weapon": {
+      "damage": 1,
+      "range": 1,
+      "attack_speed": 1.0,
+      "is_ranged": false
+    },
+    "material": "wood",
+    "equipable": [
+      "hand"
+    ]
+  },
+  {
+    "name": "Iron Helmet",
+    "description": "A plain iron helmet",
+    "weight": 1.0,
+    "armor": {
+      "defense": 1,
+      "resistance": 0
+    },
+    "material": "iron",
+    "equipable": [
+      "head"
+    ]
+  },
+  {
+    "name": "Healing Potion",
+    "description": "Restores some health",
+    "weight": 0.5,
+    "potion": {
+      "effect": "healing",
+      "potency": 20,
+      "duration": 1
+    }
+  }
+]
