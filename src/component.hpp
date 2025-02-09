@@ -23,6 +23,7 @@ struct pair_hash {
 struct IComponentStorage {
     virtual ~IComponentStorage()       = default;
     virtual void remove(Entity entity) = 0;
+    virtual bool has(Entity)           = 0;
 };
 
 // Templated storage for each component type
@@ -34,6 +35,7 @@ template <typename T> struct ComponentStorage : IComponentStorage {
         auto it = components.find(entity);
         return (it != components.end()) ? &it->second : nullptr;
     };
+    bool has(Entity entity) override { return components.find(entity) != components.end(); }
     void remove(Entity entity) override { components.erase(entity); };
 };
 
@@ -70,6 +72,11 @@ struct ComponentManager {
         }
         get_storage<T>().remove(entity);
     };
+
+    template <typename T> bool has_component(Entity entity) {
+        auto& storage = get_storage<T>();
+        return storage.has(entity);
+    }
 
     void remove_all_components(Entity entity) {
         for (const auto& pair : storages)

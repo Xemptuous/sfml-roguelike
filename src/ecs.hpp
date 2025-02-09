@@ -23,6 +23,10 @@ struct ECS {
         return component_manager.get_component<T>(entity);
     };
 
+    template <typename T> bool has_component(Entity entity) {
+        return component_manager.has_component<T>(entity);
+    }
+
     std::unordered_set<Entity>& entities() { return entity_manager.active_entities; }
     ComponentManager& components() { return component_manager; }
 

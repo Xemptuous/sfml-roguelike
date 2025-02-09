@@ -1,11 +1,8 @@
 #include "entity.hpp"
 
-#include "grid.hpp"
 #include "json.hpp"
-#include "sprite.hpp"
 
 #include <fstream>
-#include <iostream>
 #include <random>
 #include <unordered_map>
 #include <vector>
@@ -25,10 +22,9 @@ enum AIBehavior {
 void MovementSystem(Grid& grid, ECS& ecs) {
     auto& positionMap = ecs.component_manager.positionMap;
     for (Entity entity : ecs.entities()) {
+        if (!ecs.has_component<Actor>(entity)) continue;
         Position* pos = ecs.get_component<Position>(entity);
         Movement* mov = ecs.get_component<Movement>(entity);
-
-        if (!(pos && mov)) continue;
 
         int newX = pos->x + mov->dx;
         int newY = pos->y + mov->dy;
@@ -66,12 +62,10 @@ void AIMovementIntentSystem(Grid& grid, ECS& ecs) {
     int playerY         = playerPos->y;
 
     for (Entity entity : ecs.entities()) {
-        if (entity == Player) continue;
+        if (entity == Player || !ecs.has_component<Actor>(entity)) continue;
 
         Position* pos = ecs.get_component<Position>(entity);
         Movement* mov = ecs.get_component<Movement>(entity);
-
-        if (!(pos && mov)) continue;
 
         switch (*ecs.get_component<AIBehavior>(entity)) {
             case Standard:
@@ -97,11 +91,12 @@ void AIMovementIntentSystem(Grid& grid, ECS& ecs) {
     }
 }
 
-void CombatSystem(ECS& ecs) {
+void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
     // create map of current positions
     auto& positionMap = ecs.component_manager.positionMap;
     std::vector<Entity> to_destroy;
     for (Entity attacker : ecs.entities()) {
+        if (!ecs.has_component<Actor>(attacker)) continue;
         // don't process entity if it's destroyed
         for (Entity destroyed : to_destroy)
             if (attacker == destroyed) continue;
@@ -123,6 +118,7 @@ void CombatSystem(ECS& ecs) {
         // FIXME: shouldnt be necessary
         if (defender == attacker) continue;
         if (defender != Player && attacker != Player) continue;
+        if (!ecs.has_component<Health>(defender)) continue;
 
         Health* defHealth = ecs.get_component<Health>(defender);
         Name* defName     = ecs.get_component<Name>(defender);
@@ -134,6 +130,21 @@ void CombatSystem(ECS& ecs) {
         std::mt19937 rng(dev());
         std::uniform_int_distribution<int> rand_dmg(dmg->min, dmg->max);
         int damageDealt = rand_dmg(rng);
+
+        Inventory* attackerInv = ecs.get_component<Inventory>(attacker);
+        if (attackerInv) {
+            if (attacker == Player) {
+                printf("PLAYER INVENTORY:\n");
+            }
+            for (Entity item : attackerInv->items) {
+                printf("  ITEM: %lu\n", item);
+                item::Weapon* weapon = ecs.get_component<item::Weapon>(item);
+                if (weapon) {
+                    printf("  IS WEAPON\n");
+                    damageDealt += weapon->damage;
+                }
+            }
+        }
 
         // Apply damage
         defHealth->curr -= damageDealt;
@@ -276,15 +287,6 @@ void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
 
 void EntityGeneratorSystem(ECS& ecs) {
     using json = nlohmann::json;
-    // Create Player
-    Player     = ecs.create_entity()
-                 .with(Name{"Player"})
-                 .with(Position{MAP_WIDTH / 2, MAP_HEIGHT / 2})
-                 .with(Renderable(PlayerMaleStanding))
-                 .with(Movement{0, 0})
-                 .with(Health{100, 100})
-                 .with(Damage{10, 10})
-                 .build();
 
     // Read Entity Table
     std::ifstream f("entities.json");
@@ -303,6 +305,7 @@ void EntityGeneratorSystem(ECS& ecs) {
         auto mob = data[picker(rng)];
 
         ecs.create_entity()
+            .with(Actor{})
             .with(Name{mob["name"]})
             .with(Position{randx(rng), randy(rng)})
             .with(Renderable(stringSpriteMap.at(mob["name"]), stringColorMap.at(mob["color"])))

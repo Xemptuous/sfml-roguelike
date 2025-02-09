@@ -1,6 +1,7 @@
 #pragma once
 #include "ecs.hpp"
 #include "grid.hpp"
+#include "item.hpp"
 #include "sprite.hpp"
 
 #include <SFML/Graphics.hpp>
@@ -13,6 +14,8 @@ using Entity = uint64_t;
 const Entity MAX_ENTITIES = 10000;
 
 static Entity Player = 0;
+
+struct Actor {};
 
 // Components
 typedef std::string Name;
@@ -79,6 +82,6 @@ void MovementSystem(Grid&, ECS&);
 void AIMovementIntentSystem(Grid&, ECS&);
 void LineOfSightSystem(ECS&);
 void PathFindingSystem(Entity start, Entity end, Grid&, ECS&);
-void CombatSystem(ECS&);
+void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs);
 
 void EntityGeneratorSystem(ECS&);
