@@ -1,34 +1,32 @@
 [
   {
-    "name": "Wood Sword",
-    "description": "A simple wooden sword",
+    "name": "sword",
+    "description": "A simple sword",
     "weight": 1.0,
     "weapon": {
-      "damage": 1,
+      "damage": 5,
       "range": 1,
       "attack_speed": 1.0,
       "is_ranged": false
     },
-    "material": "wood",
     "equipable": [
       "hand"
     ]
   },
   {
-    "name": "Iron Helmet",
+    "name": "helmet",
     "description": "A plain iron helmet",
     "weight": 1.0,
     "armor": {
       "defense": 1,
       "resistance": 0
     },
-    "material": "iron",
     "equipable": [
       "head"
     ]
   },
   {
-    "name": "Healing Potion",
+    "name": "healing_potion",
     "description": "Restores some health",
     "weight": 0.5,
     "potion": {

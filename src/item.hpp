@@ -8,6 +8,7 @@
 using json = nlohmann::json;
 
 namespace item {
+
 // Item
 struct Item {
     std::string name;
@@ -28,8 +29,6 @@ static void from_json(const json& j, Item& i) {
     j.at("description").get_to(i.desc);
     j.at("weight").get_to(i.weight);
 }
-
-typedef std::vector<Item*> Inventory;
 
 // Equipable
 struct Equipable {
@@ -108,11 +107,29 @@ struct Potion {
     int potency;
     int duration;
 };
+
+struct PotionClass {
+    enum class Type { Lesser, Greater, Mythic };
+    float potencyModifier;
+    float durationModifier;
+};
+
+static const std::unordered_map<PotionClass::Type, PotionClass> POTION_CLASS_DATABASE = {
+    {PotionClass::Type::Lesser,  {1.f, 1.f}},
+    {PotionClass::Type::Greater, {2.f, 2.f}},
+    {PotionClass::Type::Mythic,  {4.f, 4.f}},
+};
+
 static const std::unordered_map<std::string, Potion::Type> potionEffectMap = {
-    {"healing",      Potion::Type::Healing    },
-    {"mana_restore", Potion::Type::ManaRestore},
-    {"poison",       Potion::Type::Poison     },
-    {"buff",         Potion::Type::Buff       },
+    {"healing", Potion::Type::Healing    },
+    {"mana",    Potion::Type::ManaRestore},
+    {"poison",  Potion::Type::Poison     },
+    {"buff",    Potion::Type::Buff       },
+};
+
+static const std::unordered_map<std::string, PotionClass::Type> potionClassMap = {
+    {"lesser",  PotionClass::Type::Lesser },
+    {"greater", PotionClass::Type::Greater},
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
@@ -153,19 +170,11 @@ struct Material {
 };
 
 static const std::unordered_map<Material::Type, Material> MATERIAL_DATABASE = {
-    {Material::Type::Wood,    {50, 0.8f, 0.9f} },
-    {Material::Type::Bronze,  {80, 1.0f, 1.0f} },
-    {Material::Type::Iron,    {100, 1.2f, 1.1f}},
-    {Material::Type::Steel,   {150, 1.5f, 1.3f}},
-    {Material::Type::Mithril, {250, 2.0f, 1.5f}},
-};
-
-static const std::unordered_map<std::string, Material> materialMap = {
-    {"wood",    MATERIAL_DATABASE.at(Material::Type::Wood)   },
-    {"bronze",  MATERIAL_DATABASE.at(Material::Type::Bronze) },
-    {"iron",    MATERIAL_DATABASE.at(Material::Type::Iron)   },
-    {"steel",   MATERIAL_DATABASE.at(Material::Type::Steel)  },
-    {"mithril", MATERIAL_DATABASE.at(Material::Type::Mithril)},
+    {Material::Type::Wood,    {50, 1.0f, 0.9f} },
+    {Material::Type::Bronze,  {80, 1.5f, 1.0f} },
+    {Material::Type::Iron,    {100, 2.0f, 1.1f}},
+    {Material::Type::Steel,   {150, 3.0f, 1.3f}},
+    {Material::Type::Mithril, {250, 5.0f, 1.5f}},
 };
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
@@ -178,6 +187,34 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
         {Material::Type::Mithril, "mithril"},
 }
 )
+
 } // namespace item
 
-void ItemGeneratorSystem(ECS& ecs);
+std::string materialToString(item::Material::Type type);
+
+struct Inventory {
+    std::vector<Entity> items;
+    float maxWeight     = 50.f;
+    float currentWeight = 0.f;
+
+    bool isFull() const { return currentWeight >= maxWeight; }
+};
+
+struct Equipment {
+    std::unordered_map<item::Equipable::Slot, Entity> slots;
+};
+
+struct ItemRegistry {
+    std::unordered_map<std::string, Entity> items;
+
+    void register_item(const std::string& name, Entity entity) { items[name] = entity; }
+    Entity get(const std::string& name) const {
+        auto it = items.find(name);
+        if (it != items.end()) return it->second;
+        throw std::runtime_error("Item not found: " + name);
+    }
+    bool exists(const std::string& name) const { return items.find(name) != items.end(); }
+};
+
+void ItemGeneratorSystem(ItemRegistry&, ECS&);
+void addItemToInventory(Entity owner, Entity item, ECS&);
