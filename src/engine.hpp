@@ -2,6 +2,13 @@
 #include "ecs.hpp"
 #include "grid.hpp"
 
+struct MenuOptions {
+    bool show_inventory;
+};
+
+extern MenuOptions MENU_OPTIONS;
+// extern bool show_inventory;
+
 #include <SFML/Graphics.hpp>
 
 using namespace sf;

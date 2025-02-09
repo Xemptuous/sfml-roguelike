@@ -1,9 +1,9 @@
 #include "engine.hpp"
 #include "entity.hpp"
-#include "item.hpp"
 #include "sprite.hpp"
 
 #include <SFML/Graphics.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include <cstdio>
 #include <string.h>
 #include <thread>
@@ -21,6 +21,8 @@ extern const int MAP_WIDTH, MAP_HEIGHT;
 sf::Texture SPRITE_SHEET;
 sf::Image SPRITE_SHEET_IMAGE;
 extern Options OPTIONS;
+
+extern MenuOptions MENU_OPTIONS;
 
 const int TARGET_FRAMERATE = 24;
 
@@ -60,12 +62,28 @@ int main(int argc, char** argv) {
     SpriteGenerator();
 
     // Create Entities
-    ECS ecs = ECS{};
+    ECS ecs;
+    Player = ecs.create_entity()
+                 .with(Actor{})
+                 .with(Name{"Player"})
+                 .with(Position{MAP_WIDTH / 2, MAP_HEIGHT / 2})
+                 .with(Renderable(PlayerMaleStanding))
+                 .with(Movement{0, 0})
+                 .with(Health{100, 100})
+                 .with(Damage{10, 10})
+                 .with(Inventory{})
+                 .build();
+
+    ItemRegistry itemRegistry;
+    ItemGeneratorSystem(itemRegistry, ecs);
     EntityGeneratorSystem(ecs);
-    ItemGeneratorSystem(ecs);
+
+    // Give player an item
+    addItemToInventory(Player, itemRegistry.get("wood sword"), ecs);
+    addItemToInventory(Player, itemRegistry.get("iron helmet"), ecs);
 
     // Create Map
-    Grid grid = Grid{};
+    Grid grid{};
     MapGeneratorSystem(grid);
     BuildingGeneratorSystem(grid);
 
@@ -74,30 +92,35 @@ int main(int argc, char** argv) {
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
-            if (event->is<sf::Event::Closed>()
-                || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Q)) {
+            using namespace sf::Keyboard;
+            if (event->is<Event::Closed>() || isKeyPressed(Key::Q)) {
                 window.close();
-            } else if (event->is<sf::Event::KeyPressed>()) {
+            } else if (event->is<Event::KeyPressed>()) {
                 wait = false;
-                using namespace sf::Keyboard;
-                if (isKeyPressed(Key::A)) {
-                    SwapTilesetSystem(camera, grid, ecs);
-                    continue;
-                }
-            } else if (event->is<sf::Event::Resized>()) {
+            } else if (event->is<Event::Resized>()) {
                 ResizeSystem(camera, grid, ecs);
                 DrawSystem(window, renderTexture, font, camera, grid, ecs);
                 wait = true;
             }
 
-            // if (!wait) {
-            // }
+            if (!wait) {
+                if (isKeyPressed(Key::A)) {
+                    SwapTilesetSystem(camera, grid, ecs);
+                    continue;
+                } else if (isKeyPressed(Key::I)) {
+                    MENU_OPTIONS.show_inventory = true;
+                    wait                        = true;
+                } else if (isKeyPressed(Key::Escape)) {
+                    MENU_OPTIONS.show_inventory = false;
+                    wait                        = true;
+                }
+            }
         }
 
         if (!wait) {
             AIMovementIntentSystem(grid, ecs);
             InputSystem(ecs);
-            CombatSystem(ecs);
+            CombatSystem(itemRegistry, ecs);
             Health* hp = ecs.get_component<Health>(Player);
             if (hp->curr <= 0) {
                 printf("YOU DIED!\nBYE!\n");
@@ -114,10 +137,9 @@ int main(int argc, char** argv) {
                 mov->dy = 0;
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(30));
-            DrawSystem(window, renderTexture, font, camera, grid, ecs);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
             wait = true;
         }
+        DrawSystem(window, renderTexture, font, camera, grid, ecs);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }

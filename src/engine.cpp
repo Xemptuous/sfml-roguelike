@@ -3,6 +3,7 @@
 #include "entity.hpp"
 #include "grid.hpp"
 #include "sprite.hpp"
+#include "ui.hpp"
 
 #include <SFML/Window/Window.hpp>
 #include <algorithm>
@@ -17,6 +18,8 @@ Options OPTIONS;
 Vector2f SIZE_FACTOR{};
 Vector2f SCALE_FACTOR{};
 
+MenuOptions MENU_OPTIONS = {.show_inventory = false};
+
 void DrawSystem(
     RenderWindow& window, RenderTexture& render, Font& font, Camera& camera, Grid& grid, ECS& ecs
 ) {
@@ -24,10 +27,15 @@ void DrawSystem(
     window.clear();
     render.clear();
     render.setView(camera.view);
+    camera.view.setViewport({
+        {0.f, 0.f },
+        {1.f, 0.8f}
+    });
     RenderSystem(render, camera, grid, ecs);
     render.display();
     window.draw(sf::Sprite(render.getTexture()));
-    UISystem(window, font, camera, ecs);
+    UISystem(window, font, ecs);
+    if (MENU_OPTIONS.show_inventory) showInventory(window, font, ecs);
     window.display();
 }
 
@@ -48,8 +56,8 @@ void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS&
     // draw entities
     std::vector<std::pair<Entity, Renderable>> renderQueue;
     for (Entity entity : ecs.entities()) {
+        if (!ecs.has_component<Renderable>(entity)) continue;
         Renderable* renderable = ecs.get_component<Renderable>(entity);
-        if (!renderable) continue;
         renderQueue.push_back({entity, *renderable});
     }
     std::sort(renderQueue.begin(), renderQueue.end(), [](auto& a, auto& b) {
@@ -57,6 +65,7 @@ void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS&
     });
 
     for (auto& [entity, renderable] : renderQueue) {
+        if (!ecs.has_component<Position>(entity)) continue;
         const Position* pos = ecs.get_component<Position>(entity);
         if (!pos) continue;
 
@@ -72,54 +81,6 @@ void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS&
         bg->setColor(sf::Color::Black);
         renderTexture.draw(*bg);
         renderTexture.draw(renderable.sprite);
-    }
-}
-
-void UISystem(RenderWindow& window, Font& font, Camera& camera, ECS& ecs) {
-    camera.view.setViewport({
-        {0.f, 0.f },
-        {1.f, 0.8f}
-    });
-
-    // draw base
-    unsigned int rh       = 400;
-    unsigned int rw       = RENDER_WIDTH;
-    unsigned int rect_top = RENDER_HEIGHT - rh;
-    sf::RectangleShape rect({(float)rw, (float)rh});
-    rect.setPosition({0.f, (float)rect_top});
-    rect.setFillColor(sf::Color::Black);
-    window.draw(rect);
-
-    float top_margin = 20;
-
-    // Player HP
-    Health* hp = ecs.get_component<Health>(Player);
-    sf::Text php(font);
-    php.setString("Player HP: " + std::to_string(hp->curr) + "/" + std::to_string(hp->max));
-    php.setCharacterSize(32);
-    php.setFillColor(sf::Color::White);
-    php.setStyle(sf::Text::Bold);
-    php.setPosition({20.f, rect_top + top_margin});
-    window.draw(php);
-
-    // Event Log
-    // TODO: add "scrolling" to the logs to fit in screen
-    // also consider sizing based on window
-    std::vector<std::string>& logs = ecs.component_manager.eventLogs;
-
-    int line_height   = 26;
-    float left_margin = 900;
-
-    int i = 0;
-    for (std::string event : ecs.component_manager.eventLogs) {
-        sf::Text log(font);
-        log.setString(event);
-        log.setCharacterSize(32);
-        log.setFillColor(sf::Color::White);
-        log.setStyle(sf::Text::Regular);
-        log.setPosition({rw - left_margin, rect_top + top_margin + line_height * i});
-        i++;
-        window.draw(log);
     }
 }
 
@@ -229,6 +190,7 @@ void ResizeSystem(Camera& camera, Grid& grid, ECS& ecs) {
 
     // resize entities
     for (Entity entity : ecs.entities()) {
+        if (!ecs.has_component<Renderable>(entity)) continue;
         Vector2f pos{
             std::round(SIZE_FACTOR.x * playerPos->x),
             std::round(SIZE_FACTOR.y * playerPos->y),
@@ -287,6 +249,7 @@ void SwapTilesetSystem(Camera& camera, Grid& grid, ECS& ecs) {
     SpriteGenerator();
     grid.reloadSprites();
     for (Entity entity : ecs.entities()) {
+        if (!ecs.has_component<Renderable>(entity)) continue;
         Renderable* renderable = ecs.get_component<Renderable>(entity);
         renderable->sprite     = *getSpriteTile(renderable->sprite_type);
     }
