@@ -15,7 +15,7 @@
   },
   {
     "name": "helmet",
-    "description": "A plain iron helmet",
+    "description": "A plain helmet",
     "weight": 1.0,
     "armor": {
       "defense": 1,
@@ -23,6 +23,42 @@
     },
     "equipable": [
       "head"
+    ]
+  },
+  {
+    "name": "chest",
+    "description": "A plain chest armor",
+    "weight": 1.0,
+    "armor": {
+      "defense": 5,
+      "resistance": 0
+    },
+    "equipable": [
+      "body"
+    ]
+  },
+  {
+    "name": "greaves",
+    "description": "A plain set of greaves",
+    "weight": 1.0,
+    "armor": {
+      "defense": 2,
+      "resistance": 0
+    },
+    "equipable": [
+      "leg"
+    ]
+  },
+  {
+    "name": "boots",
+    "description": "A plain set of boots",
+    "weight": 1.0,
+    "armor": {
+      "defense": 1,
+      "resistance": 0
+    },
+    "equipable": [
+      "foot"
     ]
   },
   {

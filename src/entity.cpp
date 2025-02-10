@@ -132,16 +132,20 @@ void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
         int damageDealt = rand_dmg(rng);
 
         Inventory* attackerInv = ecs.get_component<Inventory>(attacker);
+        Inventory* defenderInv = ecs.get_component<Inventory>(defender);
         if (attackerInv) {
-            if (attacker == Player) {
-                printf("PLAYER INVENTORY:\n");
-            }
             for (Entity item : attackerInv->items) {
-                printf("  ITEM: %lu\n", item);
                 item::Weapon* weapon = ecs.get_component<item::Weapon>(item);
                 if (weapon) {
-                    printf("  IS WEAPON\n");
                     damageDealt += weapon->damage;
+                }
+            }
+        }
+        if (defenderInv) {
+            for (Entity item : defenderInv->items) {
+                item::Armor* armor = ecs.get_component<item::Armor>(item);
+                if (armor) {
+                    damageDealt -= armor->defense;
                 }
             }
         }

@@ -64,18 +64,6 @@ struct Renderable {
         sprite(*getSpriteTile(stype)), sprite_type(stype), fg(fg), bg(bg), zIndex(1) {}
     Renderable(SpriteTiles stype, sf::Color fg, sf::Color bg, int z) :
         sprite(*getSpriteTile(stype)), sprite_type(stype), fg(fg), bg(bg), zIndex(z) {}
-    Renderable(SpriteTiles stype, sf::Color fg, int z) :
-        sprite(*getSpriteTile(stype)),
-        sprite_type(stype),
-        fg(fg),
-        bg(sf::Color::Black),
-        zIndex(z) {}
-    Renderable(SpriteTiles stype, int z) :
-        sprite(*getSpriteTile(stype)),
-        sprite_type(stype),
-        fg(sf::Color::White),
-        bg(sf::Color::Black),
-        zIndex(z) {}
 };
 
 void MovementSystem(Grid&, ECS&);

@@ -117,6 +117,7 @@ void MapGeneratorSystem(Grid& grid) {
 
 void BuildingGeneratorSystem(Grid& grid) {
     using namespace rl;
+
     std::random_device dev;
     std::mt19937 rng(dev());
     std::uniform_int_distribution<int> floor_gen(0, 4);
@@ -160,37 +161,38 @@ void BuildingGeneratorSystem(Grid& grid) {
                         switch (wall_type) {
                             case 0:
                                 grid.tiles[xy_idx(x, y)] =
-                                    Tile({x, y}, Wall, BrownWall1, Color::SaddleBrown);
+                                    Tile({x, y}, Wall, BrownWall1, rl::Color::SaddleBrown);
                                 break;
                             case 1:
                                 grid.tiles[xy_idx(x, y)] =
-                                    Tile({x, y}, Wall, WoodWall1, Color::SandyBrown);
+                                    Tile({x, y}, Wall, WoodWall1, rl::Color::SandyBrown);
                                 break;
                             default:
                                 grid.tiles[xy_idx(x, y)] =
-                                    Tile({x, y}, Wall, StoneWall1, Color::Silver);
+                                    Tile({x, y}, Wall, StoneWall1, rl::Color::Silver);
                                 break;
                         }
                         continue;
                     }
                     switch (floor_type) {
                         case 0:
-                            grid.tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Carpet1, Color::Gray);
+                            grid.tiles[xy_idx(x, y)] =
+                                Tile({x, y}, Floor, Carpet1, rl::Color::Gray);
                             break;
                         case 1:
                             grid.tiles[xy_idx(x, y)] =
-                                Tile({x, y}, Floor, Carpet2, Color::SaddleBrown);
+                                Tile({x, y}, Floor, Carpet2, rl::Color::SaddleBrown);
                             break;
                         case 2:
                             grid.tiles[xy_idx(x, y)] =
-                                Tile({x, y}, Floor, Carpet3, Color::SaddleBrown);
+                                Tile({x, y}, Floor, Carpet3, rl::Color::SaddleBrown);
                             break;
                         case 3:
                             grid.tiles[xy_idx(x, y)] =
-                                Tile({x, y}, Floor, Carpet4, Color::SaddleBrown);
+                                Tile({x, y}, Floor, Carpet4, rl::Color::SaddleBrown);
                             break;
                         default:
-                            grid.tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Stone1, Color::Gray);
+                            grid.tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Stone1, rl::Color::Gray);
                             break;
                     }
                 }

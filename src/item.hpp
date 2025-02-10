@@ -35,20 +35,13 @@ struct Equipable {
     enum class Slot {
         Head,
         Body,
+        Leg,
         Hand,
+        Foot,
         Finger,
         Neck,
         None,
     } slot;
-};
-
-static const std::unordered_map<std::string, Equipable> equipableMap = {
-    {"head",   Equipable{Equipable::Slot::Head}  },
-    {"body",   Equipable{Equipable::Slot::Body}  },
-    {"hand",   Equipable{Equipable::Slot::Hand}  },
-    {"finger", Equipable{Equipable::Slot::Finger}},
-    {"neck",   Equipable{Equipable::Slot::Neck}  },
-    {"none",   Equipable{Equipable::Slot::None}  },
 };
 
 /*
@@ -120,18 +113,6 @@ static const std::unordered_map<PotionClass::Type, PotionClass> POTION_CLASS_DAT
     {PotionClass::Type::Mythic,  {4.f, 4.f}},
 };
 
-static const std::unordered_map<std::string, Potion::Type> potionEffectMap = {
-    {"healing", Potion::Type::Healing    },
-    {"mana",    Potion::Type::ManaRestore},
-    {"poison",  Potion::Type::Poison     },
-    {"buff",    Potion::Type::Buff       },
-};
-
-static const std::unordered_map<std::string, PotionClass::Type> potionClassMap = {
-    {"lesser",  PotionClass::Type::Lesser },
-    {"greater", PotionClass::Type::Greater},
-};
-
 NLOHMANN_JSON_SERIALIZE_ENUM(
     Potion::Type,
     {
@@ -190,8 +171,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
 
 } // namespace item
 
-std::string materialToString(item::Material::Type type);
-
 struct Inventory {
     std::vector<Entity> items;
     float maxWeight     = 50.f;
@@ -218,3 +197,8 @@ struct ItemRegistry {
 
 void ItemGeneratorSystem(ItemRegistry&, ECS&);
 void addItemToInventory(Entity owner, Entity item, ECS&);
+
+std::string materialToString(item::Material::Type type);
+item::Potion::Type stringToPotionEffect(std::string s);
+item::PotionClass::Type stringToPotionClass(std::string s);
+item::Equipable stringToEquipable(std::string s);
