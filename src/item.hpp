@@ -48,6 +48,11 @@ struct Equipable {
     Weapon
 */
 struct Weapon {
+    enum class Type {
+        Edged,
+        Blunt,
+    };
+    Type type;
     int damage;
     int range;
     float attackSpeed;
@@ -62,11 +67,20 @@ static void to_json(json& j, Weapon& w) {
 }
 
 static void from_json(const json& j, Weapon& w) {
+    j.at("type").get_to(w.type);
     j.at("damage").get_to(w.damage);
     j.at("range").get_to(w.range);
     j.at("attack_speed").get_to(w.attackSpeed);
     j.at("is_ranged").get_to(w.isRanged);
 }
+
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    Weapon::Type,
+    {
+        {Weapon::Type::Edged, "edged"},
+        {Weapon::Type::Blunt, "blunt"},
+}
+)
 
 /*
     Armor

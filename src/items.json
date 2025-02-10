@@ -4,7 +4,23 @@
     "description": "A simple sword",
     "weight": 1.0,
     "weapon": {
+      "type": "edged",
       "damage": 5,
+      "range": 1,
+      "attack_speed": 1.0,
+      "is_ranged": false
+    },
+    "equipable": [
+      "hand"
+    ]
+  },
+  {
+    "name": "club",
+    "description": "A simple club",
+    "weight": 1.0,
+    "weapon": {
+      "type": "blunt",
+      "damage": 3,
       "range": 1,
       "attack_speed": 1.0,
       "is_ranged": false
