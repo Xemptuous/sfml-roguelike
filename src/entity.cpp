@@ -297,7 +297,7 @@ void EntityGeneratorSystem(ECS& ecs) {
     using json = nlohmann::json;
 
     // Read Entity Table
-    std::ifstream f("entities.json");
+    std::ifstream f("src/entities.json");
     json data = json::parse(f);
 
     std::random_device dev;

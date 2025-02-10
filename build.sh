@@ -5,4 +5,4 @@ cp build/compile_commands.json ./
 cd build
 ninja
 echo "Running main..."
-./bin/main $1
+./main $1

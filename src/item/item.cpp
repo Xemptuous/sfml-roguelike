@@ -5,7 +5,7 @@
 void ItemGeneratorSystem(ItemRegistry& registry, ECS& ecs) {
     using json = nlohmann::json;
     using namespace item;
-    std::ifstream f("items.json");
+    std::ifstream f("src/items/items.json");
     json data = json::parse(f);
 
     // generate non-potions

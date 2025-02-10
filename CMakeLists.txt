@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.28)
 
 set(CMAKE_CXX_COMPILER "/bin/g++")
 set(CMAKE_C_COMPILER "/bin/gcc")
+set(CMAKE_BUILD_TYPE Debug)
 
 
 # cleanup build dir
@@ -11,7 +12,7 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # for LSP support
 
 set(SFML_STATIC_LIBRARIES ON)
@@ -33,13 +34,21 @@ if (NOT SFML_FOUND)
     FetchContent_MakeAvailable(SFML)
 endif()
 
-include_directories(include)
 
-file(GLOB main_src CONFIGURE_DEPENDS "src/*.cpp" "src/item/*.cpp")
+file(GLOB main_src CONFIGURE_DEPENDS "src/*.cpp" "src/item/*.cpp" "include/*")
 file(COPY 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/entities.json
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src
+)
+file(COPY 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/item/items.json
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src/items
+)
+file(COPY
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/DejaVuSans.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/alloy_curses_12x12.png
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/urizen_onebit_tileset__v1d1.png
+    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
 add_executable(main ${main_src})
