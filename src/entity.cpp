@@ -97,6 +97,7 @@ void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
     std::vector<Entity> to_destroy;
     for (Entity attacker : ecs.entities()) {
         if (!ecs.has_component<Actor>(attacker)) continue;
+
         // don't process entity if it's destroyed
         for (Entity destroyed : to_destroy)
             if (attacker == destroyed) continue;
@@ -111,6 +112,7 @@ void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
         int targetX = pos->x + mov->dx;
         int targetY = pos->y + mov->dy;
 
+        // find entity as target position
         auto it = positionMap.find({targetX, targetY});
         if (it == positionMap.end()) continue;
 
@@ -131,8 +133,8 @@ void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
         std::uniform_int_distribution<int> rand_dmg(dmg->min, dmg->max);
         int damageDealt = rand_dmg(rng);
 
+        // Calculate offensive item contributions
         Inventory* attackerInv = ecs.get_component<Inventory>(attacker);
-        Inventory* defenderInv = ecs.get_component<Inventory>(defender);
         if (attackerInv) {
             for (Entity item : attackerInv->items) {
                 item::Weapon* weapon = ecs.get_component<item::Weapon>(item);
@@ -141,6 +143,8 @@ void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
                 }
             }
         }
+        // Calculate defense item contributions
+        Inventory* defenderInv = ecs.get_component<Inventory>(defender);
         if (defenderInv) {
             for (Entity item : defenderInv->items) {
                 item::Armor* armor = ecs.get_component<item::Armor>(item);
@@ -157,6 +161,7 @@ void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
             *attName + " attacks " + *defName + " for " + std::to_string(damageDealt) + " damage!"
         );
 
+        // If should die, add to "killed" vec
         if (defHealth->curr <= 0) {
             to_destroy.push_back(defender);
             continue;
@@ -166,6 +171,7 @@ void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
         mov->dx = 0;
         mov->dy = 0;
     }
+
     for (Entity entity : to_destroy) {
         if (entity == Player) continue;
         ecs.destroy_entity(entity);
