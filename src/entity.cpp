@@ -174,34 +174,32 @@ void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
 
 void LineOfSightSystem(ECS& ecs) {}
 
-int chebyshevDistance(int a, int b, int w, int h) {
-    int ax = a % w;
-    int ay = a / w;
-    int bx = b % w;
-    int by = b / w;
-    int dx = ax - bx;
-    int dy = ay - by;
-    return (dx + dy) - 1 * std::min(dx, dy);
-    // return abs(ax - bx) + abs(ay - by);
-}
-
-const double ORTHOGONAL_COST = 1.0;
-const double DIAGONAL_COST   = 1.414;
-
-const std::pair<int, int> MOVEMENT_DIRECTIONS[8] = {
-    // Horizontal + Vertical
-    {-1, 0 },
-    {1,  0 },
-    {0,  -1},
-    {0,  1 },
-    // Diagonals
-    {-1, -1},
-    {1,  -1},
-    {-1, 1 },
-    {1,  1 }
-};
-
 void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
+    auto chebyshevDistance = [](int a, int b, int w, int h) {
+        int ax = a % w;
+        int ay = a / w;
+        int bx = b % w;
+        int by = b / w;
+        int dx = ax - bx;
+        int dy = ay - by;
+        return (dx + dy) - 1 * std::min(dx, dy);
+        // return abs(ax - bx) + abs(ay - by);
+    };
+    const double ORTHOGONAL_COST = 1.0;
+    const double DIAGONAL_COST   = 1.414;
+
+    const std::pair<int, int> MOVEMENT_DIRECTIONS[8] = {
+        // Horizontal + Vertical
+        {-1, 0 },
+        {1,  0 },
+        {0,  -1},
+        {0,  1 },
+        // Diagonals
+        {-1, -1},
+        {1,  -1},
+        {-1, 1 },
+        {1,  1 }
+    };
     // start and end indices
     int s = 0, e = 0;
     Position* s_pos = ecs.get_component<Position>(start);
