@@ -5,7 +5,9 @@
 
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Sprite.hpp>
-#include <vector>
+
+constexpr int MAP_WIDTH  = 300;
+constexpr int MAP_HEIGHT = 300;
 
 enum TileType {
     Wall,
@@ -14,8 +16,7 @@ enum TileType {
 
 // Components
 struct Tile {
-    sf::Sprite sprite;
-    sf::Sprite bg_sprite;
+    std::shared_ptr<sf::Sprite> sprite;
     TileType tile_type;
     SpriteTiles sprite_type;
     sf::Vector2i position;
@@ -37,9 +38,10 @@ struct Building {
 };
 
 struct Grid {
-    std::vector<Tile> tiles;
+    std::vector<std::shared_ptr<Tile>> tiles;
 
     Grid();
+
     bool isWalkable(int x, int y);
     bool isWalkable(sf::Vector2i);
     void updateMap();

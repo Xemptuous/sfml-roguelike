@@ -20,7 +20,7 @@ enum AIBehavior {
 };
 
 void MovementSystem(Grid& grid, ECS& ecs) {
-    auto& positionMap = ecs.component_manager.positionMap;
+    auto& positionMap = ecs.component_manager->positionMap;
     for (Entity entity : ecs.entities()) {
         if (!ecs.has_component<Actor>(entity)) continue;
         Position* pos = ecs.get_component<Position>(entity);
@@ -36,12 +36,12 @@ void MovementSystem(Grid& grid, ECS& ecs) {
                 mov->dx  = 0;
                 mov->dy  = 0;
             } else {
-                ecs.component_manager.update_position(entity, newX, newY);
+                ecs.component_manager->update_position(entity, newX, newY);
                 pos->x = newX;
                 pos->y = newY;
             };
         } else {
-            ecs.component_manager.update_position(entity, pos->x, pos->y);
+            ecs.component_manager->update_position(entity, pos->x, pos->y);
             // pos->x -= mov->dx;
             // pos->y -= mov->dy;
             mov->dx = 0;
@@ -93,7 +93,7 @@ void AIMovementIntentSystem(Grid& grid, ECS& ecs) {
 
 void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
     // create map of current positions
-    auto& positionMap = ecs.component_manager.positionMap;
+    auto& positionMap = ecs.component_manager->positionMap;
     std::vector<Entity> to_destroy;
     for (Entity attacker : ecs.entities()) {
         if (!ecs.has_component<Actor>(attacker)) continue;
@@ -157,7 +157,7 @@ void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
         // Apply damage
         defHealth->curr -= damageDealt;
 
-        ecs.component_manager.eventLogs.push_back(
+        ecs.component_manager->eventLogs.push_back(
             *attName + " attacks " + *defName + " for " + std::to_string(damageDealt) + " damage!"
         );
 
@@ -273,7 +273,7 @@ void PathFindingSystem(Entity start, Entity end, Grid& grid, ECS& ecs) {
             if (is_diagonal) {                    // Diagonal move
                 int adjacent1 = current + dx;     // Horizontal neighbor
                 int adjacent2 = current + dy * w; // Vertical neighbor
-                if (!grid.tiles[adjacent1].isWalkable() || !grid.tiles[adjacent2].isWalkable())
+                if (!grid.tiles[adjacent1]->isWalkable() || !grid.tiles[adjacent2]->isWalkable())
                     continue;
             }
 

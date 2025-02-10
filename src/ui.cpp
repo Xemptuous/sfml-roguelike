@@ -34,13 +34,13 @@ void UISystem(RenderWindow& window, Font& font, ECS& ecs) {
     // Event Log
     // TODO: add "scrolling" to the logs to fit in screen
     // also consider sizing based on window
-    std::vector<std::string>& logs = ecs.component_manager.eventLogs;
+    std::vector<std::string>& logs = ecs.component_manager->eventLogs;
 
     int line_height   = 26;
     float left_margin = 900;
 
     int i = 0;
-    for (std::string event : ecs.component_manager.eventLogs) {
+    for (std::string event : ecs.component_manager->eventLogs) {
         Text log(font);
         log.setString(event);
         log.setCharacterSize(32);

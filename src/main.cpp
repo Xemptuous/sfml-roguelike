@@ -8,11 +8,10 @@
 #include <string.h>
 #include <thread>
 
-extern const int RENDER_WIDTH   = 2560;
-extern const int RENDER_HEIGHT  = 1440;
-extern const int CONSOLE_WIDTH  = 80;
-extern const int CONSOLE_HEIGHT = 45;
-extern const int MAP_WIDTH, MAP_HEIGHT;
+extern constexpr int RENDER_WIDTH   = 2560;
+extern constexpr int RENDER_HEIGHT  = 1440;
+extern constexpr int CONSOLE_WIDTH  = 80;
+extern constexpr int CONSOLE_HEIGHT = 45;
 
 // extern std::unordered_map<Entity, Position> positions;
 // extern std::unordered_map<Entity, Movement> movements;
@@ -42,16 +41,15 @@ int main(int argc, char** argv) {
     sf::RenderWindow window;
     sf::RenderTexture renderTexture({RENDER_WIDTH, RENDER_HEIGHT});
     sf::Font font;
-    if (!font.openFromFile("../include/DejaVuSans.ttf")) {
-        printf("Could not load font file!\n");
-        return 1;
-    }
-
     window.create(
         sf::VideoMode({RENDER_WIDTH, RENDER_HEIGHT}), "My Window", sf::Style::Default,
         sf::State::Windowed
     );
     window.setFramerateLimit(TARGET_FRAMERATE);
+    if (!font.openFromFile("../include/DejaVuSans.ttf")) {
+        printf("Could not load font file!\n");
+        return 1;
+    }
 
     Camera camera = Camera{.view = sf::View()};
 
@@ -77,6 +75,15 @@ int main(int argc, char** argv) {
     ItemRegistry itemRegistry;
     ItemGeneratorSystem(itemRegistry, ecs);
     EntityGeneratorSystem(ecs);
+
+    printf("SIZE OF SPRITE: %lu\n", sizeof(sf::Sprite));
+    printf("SIZE OF COLOR: %lu\n", sizeof(sf::Color));
+    printf("SIZE OF VECTOR2i: %lu\n", sizeof(Vector2i));
+    printf("SIZE OF TILE: %lu\n", sizeof(Tile));
+    printf("SIZE OF ECS: %lu\n", sizeof(ECS));
+    printf("SIZE OF EntityManager: %lu\n", sizeof(EntityManager));
+    printf("SIZE OF ComponentManager: %lu\n", sizeof(ComponentManager));
+    printf("SIZE OF GRID: %lu\n", sizeof(Grid));
 
     // Give player an item
     addItemToInventory(Player, itemRegistry.get("wood sword"), ecs);

@@ -3,19 +3,18 @@
 #include <random>
 
 extern const int CONSOLE_WIDTH, CONSOLE_HEIGHT;
-extern const int MAP_WIDTH  = 300;
-extern const int MAP_HEIGHT = 300;
-const int NUM_BUILDINGS     = 300;
+extern const int MAP_WIDTH;
+extern const int MAP_HEIGHT;
+const int NUM_BUILDINGS = 300;
 extern sf::Vector2f SIZE_FACTOR, SCALE_FACTOR;
 
-Tile::Tile() : sprite(*getSpriteTile(None)), bg_sprite(*getSpriteTile(BrownWall1)) {
+Tile::Tile() : sprite(std::make_shared<sf::Sprite>(*getSpriteTile(None))) {
     this->tile_type   = TileType::Floor;
     this->sprite_type = SpriteTiles::None;
     this->position    = {0, 0};
     this->fg          = sf::Color::White;
     this->bg          = sf::Color::Black;
-    this->sprite.setColor(this->fg);
-    this->bg_sprite.setColor(this->bg);
+    this->sprite->setColor(this->fg);
 }
 Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype) :
     position(pos),
@@ -23,8 +22,7 @@ Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype) :
     sprite_type(stype),
     fg(COLOR_ARRAY[rl::Color::White]),
     bg(COLOR_ARRAY[rl::Color::Black]),
-    sprite(*getSpriteTile(stype)),
-    bg_sprite(*getSpriteTile(BrownWall1)) {};
+    sprite(std::make_shared<sf::Sprite>(*getSpriteTile(stype))) {};
 
 Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg) :
     position(pos),
@@ -32,8 +30,7 @@ Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg) :
     sprite_type(stype),
     fg(COLOR_ARRAY[fg]),
     bg(COLOR_ARRAY[rl::Color::Black]),
-    sprite(*getSpriteTile(stype)),
-    bg_sprite(*getSpriteTile(BrownWall1)) {};
+    sprite(std::make_shared<sf::Sprite>(*getSpriteTile(stype))) {};
 
 Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg, rl::Color bg) :
     position(pos),
@@ -41,12 +38,10 @@ Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg, rl
     sprite_type(stype),
     fg(COLOR_ARRAY[fg]),
     bg(COLOR_ARRAY[bg]),
-    sprite(*getSpriteTile(stype)),
-    bg_sprite(*getSpriteTile(BrownWall1)) {};
+    sprite(std::make_shared<sf::Sprite>(*getSpriteTile(stype))) {};
 
 void Tile::resetSprite() {
-    this->sprite    = *getSpriteTile(this->sprite_type);
-    this->bg_sprite = *getSpriteTile(BrownWall1);
+    this->sprite = std::make_shared<sf::Sprite>(*getSpriteTile(this->sprite_type));
 }
 
 bool Building::intersects(Building& r) {
@@ -54,19 +49,20 @@ bool Building::intersects(Building& r) {
     return x1 < r.x2 + b && x2 > r.x1 - b && y1 < r.y2 + b && y2 > r.y1 - b;
 }
 
-Grid::Grid() : tiles(std::vector<Tile>{}) {
+Grid::Grid() : tiles(std::vector<std::shared_ptr<Tile>>{}) {
     tiles.reserve(MAP_WIDTH * MAP_HEIGHT);
 }
 
 bool Grid::isWalkable(int x, int y) {
     return (
-        x >= 0 && y >= 0 && x < MAP_WIDTH && y < MAP_HEIGHT && tiles[xy_idx(x, y)].tile_type != Wall
+        x >= 0 && y >= 0 && x < MAP_WIDTH && y < MAP_HEIGHT
+        && tiles[xy_idx(x, y)]->tile_type != Wall
     );
 }
 
 void Grid::reloadSprites() {
-    for (Tile& tile : this->tiles)
-        tile.resetSprite();
+    for (std::shared_ptr<Tile> tile : this->tiles)
+        tile->resetSprite();
 }
 
 // Systems
@@ -90,7 +86,10 @@ void MapGeneratorSystem(Grid& grid) {
             case 7:
             case 8:
             case 9:
-            case 10: grid.tiles.push_back(Tile(pos, Floor, DimGrass1, DarkGreen)); break;
+            case 10:
+                grid.tiles.push_back(std::make_shared<Tile>(Tile(pos, Floor, DimGrass1, DarkGreen))
+                );
+                break;
             case 11:
             case 12:
             case 13:
@@ -101,16 +100,34 @@ void MapGeneratorSystem(Grid& grid) {
             case 18:
             case 19:
             case 20:
-            case 21: grid.tiles.push_back(Tile(pos, Floor, DimGrass2, DarkGreen)); break;
-            case 22: grid.tiles.push_back(Tile(pos, Floor, Grass1, Green)); break;
-            case 23: grid.tiles.push_back(Tile(pos, Floor, Grass2, Green)); break;
-            case 24: grid.tiles.push_back(Tile(pos, Floor, Flower1, DarkRed)); break;
-            // case 21: grid.tiles.push_back(Tile(pos, Floor, Flower2, Red)); break;
-            case 26: grid.tiles.push_back(Tile(pos, Floor, Mushroom1, DarkRed)); break;
-            case 27: grid.tiles.push_back(Tile(pos, Floor, Mushroom2, Gray)); break;
-            case 28: grid.tiles.push_back(Tile(pos, Wall, Tree1, SaddleBrown)); break;
-            case 29: grid.tiles.push_back(Tile(pos, Wall, Tree2, SaddleBrown)); break;
-            default: grid.tiles.push_back(Tile(pos, Floor, None));
+            case 21:
+                grid.tiles.push_back(std::make_shared<Tile>(Tile(pos, Floor, DimGrass2, DarkGreen))
+                );
+                break;
+            case 22:
+                grid.tiles.push_back(std::make_shared<Tile>(Tile(pos, Floor, Grass1, Green)));
+                break;
+            case 23:
+                grid.tiles.push_back(std::make_shared<Tile>(Tile(pos, Floor, Grass2, Green)));
+                break;
+            case 24:
+                grid.tiles.push_back(std::make_shared<Tile>(Tile(pos, Floor, Flower1, DarkRed)));
+                break;
+            // case 21: grid.tiles.push_back(std::make_shared<Tile>(Tile(pos, Floor, Flower2,
+            // Red))); break;
+            case 26:
+                grid.tiles.push_back(std::make_shared<Tile>(Tile(pos, Floor, Mushroom1, DarkRed)));
+                break;
+            case 27:
+                grid.tiles.push_back(std::make_shared<Tile>(Tile(pos, Floor, Mushroom2, Gray)));
+                break;
+            case 28:
+                grid.tiles.push_back(std::make_shared<Tile>(Tile(pos, Wall, Tree1, SaddleBrown)));
+                break;
+            case 29:
+                grid.tiles.push_back(std::make_shared<Tile>(Tile(pos, Wall, Tree2, SaddleBrown)));
+                break;
+            default: grid.tiles.push_back(std::make_shared<Tile>(Tile(pos, Floor, None)));
         }
     }
 }
@@ -160,16 +177,19 @@ void BuildingGeneratorSystem(Grid& grid) {
                     if (x == b.x1 || x == b.x2 || y == b.y1 || y == b.y2) {
                         switch (wall_type) {
                             case 0:
-                                grid.tiles[xy_idx(x, y)] =
-                                    Tile({x, y}, Wall, BrownWall1, rl::Color::SaddleBrown);
+                                grid.tiles[xy_idx(x, y)] = std::make_shared<Tile>(
+                                    Tile({x, y}, Wall, BrownWall1, rl::Color::SaddleBrown)
+                                );
                                 break;
                             case 1:
-                                grid.tiles[xy_idx(x, y)] =
-                                    Tile({x, y}, Wall, WoodWall1, rl::Color::SandyBrown);
+                                grid.tiles[xy_idx(x, y)] = std::make_shared<Tile>(
+                                    Tile({x, y}, Wall, WoodWall1, rl::Color::SandyBrown)
+                                );
                                 break;
                             default:
-                                grid.tiles[xy_idx(x, y)] =
-                                    Tile({x, y}, Wall, StoneWall1, rl::Color::Silver);
+                                grid.tiles[xy_idx(x, y)] = std::make_shared<Tile>(
+                                    Tile({x, y}, Wall, StoneWall1, rl::Color::Silver)
+                                );
                                 break;
                         }
                         continue;
@@ -177,22 +197,28 @@ void BuildingGeneratorSystem(Grid& grid) {
                     switch (floor_type) {
                         case 0:
                             grid.tiles[xy_idx(x, y)] =
-                                Tile({x, y}, Floor, Carpet1, rl::Color::Gray);
+                                std::make_shared<Tile>(Tile({x, y}, Floor, Carpet1, rl::Color::Gray)
+                                );
                             break;
                         case 1:
-                            grid.tiles[xy_idx(x, y)] =
-                                Tile({x, y}, Floor, Carpet2, rl::Color::SaddleBrown);
+                            grid.tiles[xy_idx(x, y)] = std::make_shared<Tile>(
+                                Tile({x, y}, Floor, Carpet2, rl::Color::SaddleBrown)
+                            );
                             break;
                         case 2:
-                            grid.tiles[xy_idx(x, y)] =
-                                Tile({x, y}, Floor, Carpet3, rl::Color::SaddleBrown);
+                            grid.tiles[xy_idx(x, y)] = std::make_shared<Tile>(
+                                Tile({x, y}, Floor, Carpet3, rl::Color::SaddleBrown)
+                            );
                             break;
                         case 3:
-                            grid.tiles[xy_idx(x, y)] =
-                                Tile({x, y}, Floor, Carpet4, rl::Color::SaddleBrown);
+                            grid.tiles[xy_idx(x, y)] = std::make_shared<Tile>(
+                                Tile({x, y}, Floor, Carpet4, rl::Color::SaddleBrown)
+                            );
                             break;
                         default:
-                            grid.tiles[xy_idx(x, y)] = Tile({x, y}, Floor, Stone1, rl::Color::Gray);
+                            grid.tiles[xy_idx(x, y)] =
+                                std::make_shared<Tile>(Tile({x, y}, Floor, Stone1, rl::Color::Gray)
+                                );
                             break;
                     }
                 }
@@ -225,9 +251,9 @@ void BuildingGeneratorSystem(Grid& grid) {
 
                 // Replace the chosen wall tile with a door
                 if (door_x >= 0 && door_x < MAP_WIDTH && door_y >= 0 && door_y < MAP_HEIGHT) {
-                    grid.tiles[xy_idx(door_x, door_y)] = Tile(
+                    grid.tiles[xy_idx(door_x, door_y)] = std::make_shared<Tile>(Tile(
                         {door_x, door_y}, TileType::Floor, SpriteTiles::DoorClosed1, rl::Color::Tan
-                    );
+                    ));
                 }
             }
         }

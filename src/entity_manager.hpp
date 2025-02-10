@@ -10,6 +10,8 @@ struct EntityManager {
     std::queue<Entity> recycled_ids;
     std::unordered_set<Entity> active_entities;
 
+    EntityManager() = default;
+
     Entity create_entity() {
         Entity id;
         if (!recycled_ids.empty()) {

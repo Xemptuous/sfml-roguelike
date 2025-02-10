@@ -8,11 +8,12 @@
 #include <SFML/Window/Window.hpp>
 #include <algorithm>
 #include <cmath>
+#include <memory>
 
-extern int MAP_WIDTH, MAP_HEIGHT;
-extern int SPRITE_WIDTH, SPRITE_HEIGHT;
-extern int RENDER_WIDTH, RENDER_HEIGHT;
-extern int CONSOLE_WIDTH, CONSOLE_HEIGHT;
+extern const int MAP_WIDTH, MAP_HEIGHT;
+extern const int SPRITE_WIDTH, SPRITE_HEIGHT;
+extern const int RENDER_WIDTH, RENDER_HEIGHT;
+extern const int CONSOLE_WIDTH, CONSOLE_HEIGHT;
 
 Options OPTIONS;
 Vector2f SIZE_FACTOR{};
@@ -44,12 +45,16 @@ void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS&
     // draw the map
     for (int x = camera.x1; x < camera.x2; x++) {
         for (int y = camera.y1; y < camera.y2; y++) {
-            int idx   = xy_idx(x, y);
-            Tile tile = grid.tiles[idx];
-            if (OPTIONS.is_ascii) {
-                renderTexture.draw(tile.bg_sprite);
-            }
-            renderTexture.draw(tile.sprite);
+            int idx = xy_idx(x, y);
+
+            std::shared_ptr<Tile> tile = grid.tiles[idx];
+
+            Sprite* bg = getSpriteTile(OPTIONS.is_ascii ? BrownWall1 : Block);
+            renderTexture.draw(*bg);
+            // if (OPTIONS.is_ascii) {
+            //     renderTexture.draw(tile.bg_sprite);
+            // }
+            renderTexture.draw(*tile->sprite);
         }
     }
 
@@ -205,18 +210,18 @@ void ResizeSystem(Camera& camera, Grid& grid, ECS& ecs) {
     }
 
     // resize map tiles
-    for (Tile& tile : grid.tiles) {
+    for (std::shared_ptr<Tile> tile : grid.tiles) {
         Vector2f pos{
-            std::round(SIZE_FACTOR.x * tile.position.x),
-            std::round(SIZE_FACTOR.y * tile.position.y),
+            std::round(SIZE_FACTOR.x * tile->position.x),
+            std::round(SIZE_FACTOR.y * tile->position.y),
         };
-        tile.sprite.setPosition(pos);
-        tile.sprite.setScale(SCALE_FACTOR);
+        tile->sprite->setPosition(pos);
+        tile->sprite->setScale(SCALE_FACTOR);
         if (OPTIONS.is_ascii) {
-            tile.bg_sprite.setPosition(pos);
-            tile.bg_sprite.setScale(SCALE_FACTOR);
-            tile.bg_sprite.setColor(tile.bg);
-            tile.sprite.setColor(tile.fg);
+            // tile->bg_sprite.setPosition(pos);
+            // tile->bg_sprite.setScale(SCALE_FACTOR);
+            // tile->bg_sprite.setColor(tile.bg);
+            tile->sprite->setColor(tile->fg);
         }
     }
 }
