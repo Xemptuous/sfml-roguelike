@@ -1,7 +1,5 @@
 #include "item.hpp"
 
-#include "json.hpp"
-
 #include <fstream>
 
 void ItemGeneratorSystem(ItemRegistry& registry, ECS& ecs) {
@@ -59,43 +57,4 @@ void addItemToInventory(Entity owner, Entity item, ECS& ecs) {
             inventory->currentWeight += i->weight;
         }
     }
-}
-item::Potion::Type stringToPotionEffect(std::string s) {
-    using namespace item;
-    if (s == "healing") return Potion::Type::Healing;
-    else if (s == "mana") return Potion::Type::ManaRestore;
-    else if (s == "poison") return Potion::Type::Poison;
-    else if (s == "buff") return Potion::Type::Buff;
-    return Potion::Type::Buff;
-}
-
-item::PotionClass::Type stringToPotionClass(std::string s) {
-    using namespace item;
-    if (s == "lesser") return PotionClass::Type::Lesser;
-    else if (s == "greater") return PotionClass::Type::Lesser;
-    else return PotionClass::Type::Mythic;
-}
-
-item::Equipable stringToEquipable(std::string s) {
-    using namespace item;
-    if (s == "head") return Equipable{Equipable::Slot::Head};
-    else if (s == "body") return Equipable{Equipable::Slot::Body};
-    else if (s == "leg") return Equipable{Equipable::Slot::Leg};
-    else if (s == "hand") return Equipable{Equipable::Slot::Hand};
-    else if (s == "foot") return Equipable{Equipable::Slot::Foot};
-    else if (s == "finger") return Equipable{Equipable::Slot::Finger};
-    else if (s == "neck") return Equipable{Equipable::Slot::Neck};
-    else return Equipable{Equipable::Slot::None};
-}
-
-std::string materialToString(item::Material::Type type) {
-    using item::Material;
-    switch (type) {
-        case Material::Type::Wood:    return "wood";
-        case Material::Type::Bronze:  return "bronze";
-        case Material::Type::Iron:    return "iron";
-        case Material::Type::Steel:   return "steel";
-        case Material::Type::Mithril: return "mithril";
-    }
-    return "wood";
 }

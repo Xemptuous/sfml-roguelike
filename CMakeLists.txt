@@ -35,7 +35,7 @@ endif()
 
 include_directories(include)
 
-file(GLOB main_src CONFIGURE_DEPENDS "src/*.cpp")
+file(GLOB main_src CONFIGURE_DEPENDS "src/*.cpp" "src/item/*.cpp")
 file(COPY 
     ${CMAKE_CURRENT_SOURCE_DIR}/src/entities.json
     ${CMAKE_CURRENT_SOURCE_DIR}/src/items.json

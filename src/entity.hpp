@@ -1,7 +1,7 @@
 #pragma once
 #include "ecs.hpp"
 #include "grid.hpp"
-#include "item.hpp"
+#include "item/item.hpp"
 #include "sprite.hpp"
 
 #include <SFML/Graphics.hpp>
