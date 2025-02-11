@@ -36,20 +36,8 @@ endif()
 
 
 file(GLOB main_src CONFIGURE_DEPENDS "src/*.cpp" "src/item/*.cpp" "include/*")
-file(COPY 
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/entities.json
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src
-)
-file(COPY 
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/item/items.json
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/src/items
-)
-file(COPY
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/DejaVuSans.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/alloy_curses_12x12.png
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/urizen_onebit_tileset__v1d1.png
-    DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/include
-)
+file(GLOB MY_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include/*)
+file(COPY ${MY_INCLUDES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/include)
 
 add_executable(main ${main_src})
 target_link_libraries(main PRIVATE SFML::Graphics SFML::Audio SFML::Network SFML::System SFML::Window)

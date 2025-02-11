@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
         sf::State::Windowed
     );
     window.setFramerateLimit(TARGET_FRAMERATE);
-    if (!font.openFromFile("../include/DejaVuSans.ttf")) {
+    if (!font.openFromFile("include/DejaVuSans.ttf")) {
         printf("Could not load font file!\n");
         return 1;
     }
