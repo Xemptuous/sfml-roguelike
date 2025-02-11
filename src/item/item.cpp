@@ -1,5 +1,7 @@
 #include "item.hpp"
 
+#include "material.hpp"
+
 #include <fstream>
 
 void ItemGeneratorSystem(ItemRegistry& registry, ECS& ecs) {

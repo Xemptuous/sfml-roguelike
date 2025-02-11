@@ -19,7 +19,7 @@ extern constexpr int CONSOLE_HEIGHT = 45;
 
 sf::Texture SPRITE_SHEET;
 sf::Image SPRITE_SHEET_IMAGE;
-extern Options OPTIONS;
+Options OPTIONS{};
 
 extern MenuOptions MENU_OPTIONS;
 

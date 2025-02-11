@@ -6,7 +6,6 @@ extern const int CONSOLE_WIDTH, CONSOLE_HEIGHT;
 extern const int MAP_WIDTH;
 extern const int MAP_HEIGHT;
 const int NUM_BUILDINGS = 300;
-extern sf::Vector2f SIZE_FACTOR, SCALE_FACTOR;
 
 Tile::Tile() : sprite(std::make_shared<sf::Sprite>(*getSpriteTile(None))) {
     this->tile_type   = TileType::Floor;

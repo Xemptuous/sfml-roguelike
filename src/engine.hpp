@@ -2,20 +2,20 @@
 #include "ecs.hpp"
 #include "grid.hpp"
 
+#include <SFML/Graphics.hpp>
+#include <SFML/System/Vector2.hpp>
+using namespace sf;
+
 struct MenuOptions {
     bool show_inventory;
 };
-
-extern MenuOptions MENU_OPTIONS;
-// extern bool show_inventory;
-
-#include <SFML/Graphics.hpp>
-
-using namespace sf;
-
 struct Options {
     bool is_ascii;
+    Vector2f SCALE_FACTOR, SIZE_FACTOR;
 };
+
+extern MenuOptions MENU_OPTIONS;
+extern Options OPTIONS;
 
 struct Camera {
     sf::View view;

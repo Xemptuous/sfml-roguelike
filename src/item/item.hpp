@@ -1,11 +1,13 @@
+#pragma once
 #include "../ecs.hpp"
 #include "../json.hpp"
 #include "armor.hpp"
 #include "equipable.hpp"
-#include "material.hpp"
+// #include "material.hpp"
 #include "potion.hpp"
 #include "weapon.hpp"
 
+#include <SFML/Graphics/Sprite.hpp>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -18,12 +20,14 @@ namespace item {
 struct Item {
     std::string name;
     std::string desc;
+    std::string type;
     float weight;
 };
 
 static void to_json(json& j, Item& i) {
     j = json{
         {"name",        i.name  },
+        {"type",        i.type  },
         {"description", i.desc  },
         {"weight",      i.weight},
     };
@@ -31,6 +35,7 @@ static void to_json(json& j, Item& i) {
 
 static void from_json(const json& j, Item& i) {
     j.at("name").get_to(i.name);
+    j.at("type").get_to(i.type);
     j.at("description").get_to(i.desc);
     j.at("weight").get_to(i.weight);
 }

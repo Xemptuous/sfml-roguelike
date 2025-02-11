@@ -1,10 +1,10 @@
 [
   {
     "name": "sword",
+    "type": "edged_weapon",
     "description": "A simple sword",
     "weight": 1.0,
     "weapon": {
-      "type": "edged",
       "damage": 5,
       "range": 1,
       "attack_speed": 1.0,
@@ -16,10 +16,10 @@
   },
   {
     "name": "club",
+    "type": "blunt_weapon",
     "description": "A simple club",
     "weight": 1.0,
     "weapon": {
-      "type": "blunt",
       "damage": 3,
       "range": 1,
       "attack_speed": 1.0,
@@ -31,6 +31,7 @@
   },
   {
     "name": "helmet",
+    "type": "hard_armor",
     "description": "A plain helmet",
     "weight": 1.0,
     "armor": {
@@ -43,6 +44,7 @@
   },
   {
     "name": "chest",
+    "type": "hard_armor",
     "description": "A plain chest armor",
     "weight": 1.0,
     "armor": {
@@ -55,6 +57,7 @@
   },
   {
     "name": "greaves",
+    "type": "hard_armor",
     "description": "A plain set of greaves",
     "weight": 1.0,
     "armor": {
@@ -67,6 +70,7 @@
   },
   {
     "name": "boots",
+    "type": "soft_armor",
     "description": "A plain set of boots",
     "weight": 1.0,
     "armor": {
@@ -79,6 +83,7 @@
   },
   {
     "name": "healing_potion",
+    "type": "potion",
     "description": "Restores some health",
     "weight": 0.5,
     "potion": {

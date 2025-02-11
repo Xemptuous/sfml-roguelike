@@ -1,10 +1,12 @@
 #include "ui.hpp"
 
 #include "entity.hpp"
+#include "item/item.hpp"
+#include "sprite.hpp"
 
 #include <cmath>
-#include <iostream>
 
+extern int SPRITE_WIDTH, SPRITE_HEIGHT;
 extern int RENDER_WIDTH, RENDER_HEIGHT;
 
 void UISystem(RenderWindow& window, Font& font, ECS& ecs) {
@@ -49,6 +51,37 @@ void UISystem(RenderWindow& window, Font& font, ECS& ecs) {
         log.setPosition({rw - left_margin, rect_top + top_margin + line_height * i});
         i++;
         window.draw(log);
+    }
+}
+
+void RenderInventory(sf::RenderWindow& window, sf::Font font, ECS& ecs) {
+    Inventory* inventory = ecs.get_component<Inventory>(Player);
+
+    // sf::Sprite sprite(SPRITE_SHEET);
+
+    int fontSize = 18;
+    int yOffset  = 20;
+    char label   = 'a';
+    for (Entity entity : inventory->items) {
+        item::Item* item     = ecs.get_component<item::Item>(entity);
+        SpriteTiles tileType = stringSpriteMap.at(item->type);
+
+        // Draw the label and item name
+        sf::Text icon(font, itemCharMap.at(item->type), fontSize);
+        icon.setPosition(Vector2f(25, yOffset));
+
+        // item::Material* material = ecs.get_component<item::Material>(entity);
+        // if (material) {
+        //     icon.setFillColor(MATERIAL_COLORS.at(material))
+        // }
+
+        sf::Text text(font, std::string(1, label) + ") " + item->name, fontSize);
+        text.setPosition(Vector2f(40, yOffset));
+        window.draw(icon);
+        window.draw(text);
+
+        yOffset += SPRITE_HEIGHT + 20;
+        label++;
     }
 }
 

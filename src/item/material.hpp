@@ -1,4 +1,9 @@
+#pragma once
+#include "../color.hpp"
 #include "../json.hpp"
+
+#include <SFML/Graphics/Color.hpp>
+#include <unordered_map>
 using json = nlohmann::json;
 
 namespace item {
@@ -34,6 +39,14 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
         {Material::Type::Mithril, "mithril"},
 }
 )
+
+static const std::unordered_map<Material::Type, sf::Color> MATERIAL_COLORS = {
+    {Material::Type::Wood,    COLOR_ARRAY[rl::Color::SaddleBrown]},
+    {Material::Type::Bronze,  COLOR_ARRAY[rl::Color::SandyBrown] },
+    {Material::Type::Iron,    COLOR_ARRAY[rl::Color::Gray]       },
+    {Material::Type::Steel,   COLOR_ARRAY[rl::Color::Silver]     },
+    {Material::Type::Mithril, COLOR_ARRAY[rl::Color::Blue]       },
+};
 } // namespace item
 
 static const std::string materialToString(item::Material::Type type) {
