@@ -24,7 +24,6 @@ MenuOptions MENU_OPTIONS = {.show_inventory = false};
 void DrawSystem(
     RenderWindow& window, RenderTexture& render, Font& font, Camera& camera, Grid& grid, ECS& ecs
 ) {
-    // printf("DrawSystem\n");
     window.clear();
     render.clear();
     render.setView(camera.view);
@@ -41,7 +40,6 @@ void DrawSystem(
 }
 
 void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS& ecs) {
-    // printf("RenderSystem\n");
     // draw the map
     for (int x = camera.x1; x < camera.x2; x++) {
         for (int y = camera.y1; y < camera.y2; y++) {

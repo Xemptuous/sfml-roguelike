@@ -73,19 +73,9 @@ void showInventory(RenderWindow& window, Font& font, ECS& ecs) {
     );
     auto rectGlobalBounds = rect.getGlobalBounds();
     auto rectLocalBounds  = rect.getLocalBounds();
-    std::cout << "Rect Global: (" << rectGlobalBounds.position.x << ", "
-              << rectGlobalBounds.position.y << ") [" << rectGlobalBounds.size.x << ", "
-              << rectGlobalBounds.size.y << "]\n";
-    std::cout << "Rect Local: (" << rectLocalBounds.position.x << ", " << rectLocalBounds.position.y
-              << ") [" << rectLocalBounds.size.x << ", " << rectLocalBounds.size.y << "]\n";
 
     auto textGlobalBounds = title.getGlobalBounds();
     auto textLocalBounds  = title.getLocalBounds();
-    std::cout << "Text Global: (" << textGlobalBounds.position.x << ", "
-              << textGlobalBounds.position.y << ") [" << textGlobalBounds.size.x << ", "
-              << textGlobalBounds.size.y << "]\n";
-    std::cout << "Text Local: (" << textLocalBounds.position.x << ", " << textLocalBounds.position.y
-              << ") [" << textLocalBounds.size.x << ", " << textLocalBounds.size.y << "]\n";
 
     title.setFillColor(Color::White);
     window.draw(rect);
@@ -100,7 +90,6 @@ void showInventory(RenderWindow& window, Font& font, ECS& ecs) {
         int i = 2;
         for (Entity invItem : inv->items) {
             item::Item* item = ecs.get_component<item::Item>(invItem);
-            std::cout << "ITEM: " << invItem << " " << item->name << '\n';
             Text itemText(font, item->name, 32);
             itemText.setFillColor(Color::White);
             itemText.setStyle(Text::Regular);

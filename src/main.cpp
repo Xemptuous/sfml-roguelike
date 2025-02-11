@@ -76,15 +76,6 @@ int main(int argc, char** argv) {
     ItemGeneratorSystem(itemRegistry, ecs);
     EntityGeneratorSystem(ecs);
 
-    printf("SIZE OF SPRITE: %lu\n", sizeof(sf::Sprite));
-    printf("SIZE OF COLOR: %lu\n", sizeof(sf::Color));
-    printf("SIZE OF VECTOR2i: %lu\n", sizeof(Vector2i));
-    printf("SIZE OF TILE: %lu\n", sizeof(Tile));
-    printf("SIZE OF ECS: %lu\n", sizeof(ECS));
-    printf("SIZE OF EntityManager: %lu\n", sizeof(EntityManager));
-    printf("SIZE OF ComponentManager: %lu\n", sizeof(ComponentManager));
-    printf("SIZE OF GRID: %lu\n", sizeof(Grid));
-
     // Give player an item
     addItemToInventory(Player, itemRegistry.get("wood sword"), ecs);
     addItemToInventory(Player, itemRegistry.get("iron helmet"), ecs);
