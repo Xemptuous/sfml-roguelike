@@ -6,8 +6,8 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 
-constexpr int MAP_WIDTH  = 300;
-constexpr int MAP_HEIGHT = 300;
+constexpr int MAP_WIDTH  = 400;
+constexpr int MAP_HEIGHT = 400;
 
 enum TileType {
     Wall,

@@ -5,9 +5,11 @@
 #include "sprite.hpp"
 #include "ui.hpp"
 
+#include <SFML/Graphics/CoordinateType.hpp>
 #include <SFML/Window/Window.hpp>
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <memory>
 
 extern const int MAP_WIDTH, MAP_HEIGHT;
@@ -18,26 +20,23 @@ extern Options OPTIONS;
 
 MenuOptions MENU_OPTIONS = {.show_inventory = false};
 
-void DrawSystem(
-    RenderWindow& window, RenderTexture& render, Font& font, Camera& camera, Grid& grid, ECS& ecs
-) {
+void DrawSystem(RenderWindow& window, Font& font, Camera& camera, Grid& grid, ECS& ecs) {
     window.clear();
-    render.clear();
-    render.setView(camera.view);
-    camera.view.setViewport({
-        {0.f, 0.f },
-        {1.f, 0.9f}
-    });
-    RenderSystem(render, camera, grid, ecs);
-    render.display();
-    window.draw(sf::Sprite(render.getTexture()));
+    window.setView(camera.view);
+    // camera.view.setViewport({
+    //     {0.f, 0.f  },
+    //     {1.f, 0.89f}
+    // });
+    RenderSystem(window, camera, grid, ecs);
+    // window.display();
+    // window.draw(sf::Sprite(window.getTexture()));
     UISystem(window, font, ecs);
     // if (MENU_OPTIONS.show_inventory) showInventory(window, font, ecs);
     if (MENU_OPTIONS.show_inventory) RenderInventory(window, font, ecs);
     window.display();
 }
 
-void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS& ecs) {
+void RenderSystem(RenderWindow& window, Camera& camera, Grid& grid, ECS& ecs) {
     // draw the map
     for (int x = camera.x1; x < camera.x2; x++) {
         for (int y = camera.y1; y < camera.y2; y++) {
@@ -46,11 +45,7 @@ void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS&
             std::shared_ptr<Tile> tile = grid.tiles[idx];
 
             Sprite* bg = getSpriteTile(OPTIONS.is_ascii ? BrownWall1 : Block);
-            renderTexture.draw(*bg);
-            // if (OPTIONS.is_ascii) {
-            //     renderTexture.draw(tile.bg_sprite);
-            // }
-            renderTexture.draw(*tile->sprite);
+            window.draw(*tile->sprite);
         }
     }
 
@@ -80,8 +75,8 @@ void RenderSystem(RenderTexture& renderTexture, Camera& camera, Grid& grid, ECS&
         bg->setPosition(posv);
         bg->setScale(OPTIONS.SCALE_FACTOR);
         bg->setColor(sf::Color::Black);
-        renderTexture.draw(*bg);
-        renderTexture.draw(renderable.sprite);
+        window.draw(*bg);
+        window.draw(renderable.sprite);
     }
 }
 
@@ -165,26 +160,24 @@ void CameraSystem(Camera& camera, ECS& ecs) {
 }
 
 void ResizeSystem(Camera& camera, Grid& grid, ECS& ecs) {
+    const int TILE_WIDTH  = RENDER_WIDTH / CONSOLE_WIDTH;
+    const int TILE_HEIGHT = RENDER_HEIGHT / CONSOLE_HEIGHT;
+    const float SCALE_X   = (float)TILE_WIDTH / SPRITE_WIDTH;
+    const float SCALE_Y   = (float)TILE_HEIGHT / SPRITE_HEIGHT;
+
     // update scale and size factors
     OPTIONS.SIZE_FACTOR = Vector2f{
         (float)RENDER_WIDTH / CONSOLE_WIDTH,
         (float)RENDER_HEIGHT / CONSOLE_HEIGHT,
     };
-    OPTIONS.SCALE_FACTOR = Vector2f{
-        OPTIONS.SIZE_FACTOR.x / SPRITE_WIDTH,
-        OPTIONS.SIZE_FACTOR.y / SPRITE_HEIGHT,
-    };
+    OPTIONS.SCALE_FACTOR = Vector2f{SCALE_X, SCALE_Y};
 
     // update camera position
     Position* playerPos = ecs.get_component<Position>(Player);
-    camera.view.setCenter({
-        playerPos->x * OPTIONS.SIZE_FACTOR.x,
-        playerPos->y * OPTIONS.SIZE_FACTOR.y - CONSOLE_HEIGHT,
-    });
-    camera.view.setSize(Vector2f{
-        CONSOLE_WIDTH * OPTIONS.SIZE_FACTOR.x,
-        CONSOLE_HEIGHT * OPTIONS.SIZE_FACTOR.y,
-    });
+    camera.view.setCenter(
+        Vector2f(playerPos->x * TILE_WIDTH, playerPos->y * TILE_HEIGHT - CONSOLE_HEIGHT)
+    );
+    camera.view.setSize(Vector2f(CONSOLE_WIDTH * TILE_WIDTH, CONSOLE_HEIGHT * TILE_HEIGHT));
 
     // update camera dimensions
     ResizeCameraSystem(camera);
@@ -192,14 +185,11 @@ void ResizeSystem(Camera& camera, Grid& grid, ECS& ecs) {
     // resize entities
     for (Entity entity : ecs.entities()) {
         if (!ecs.has_component<Renderable>(entity)) continue;
-        Vector2f pos{
-            std::round(OPTIONS.SIZE_FACTOR.x * playerPos->x),
-            std::round(OPTIONS.SIZE_FACTOR.y * playerPos->y),
-        };
+        Vector2f pos(TILE_WIDTH * playerPos->x, TILE_HEIGHT * playerPos->y);
         Renderable* renderable = ecs.get_component<Renderable>(entity);
         if (!renderable) continue;
         renderable->sprite.setPosition(pos);
-        renderable->sprite.setScale(OPTIONS.SCALE_FACTOR);
+        renderable->sprite.setScale({SCALE_X, SCALE_Y});
         if (OPTIONS.is_ascii) {
             renderable->sprite.setColor(renderable->fg);
         }
@@ -207,19 +197,30 @@ void ResizeSystem(Camera& camera, Grid& grid, ECS& ecs) {
 
     // resize map tiles
     for (std::shared_ptr<Tile> tile : grid.tiles) {
-        Vector2f pos{
-            std::round(OPTIONS.SIZE_FACTOR.x * tile->position.x),
-            std::round(OPTIONS.SIZE_FACTOR.y * tile->position.y),
-        };
+        Vector2f pos(
+            // std::round(OPTIONS.SIZE_FACTOR.x * tile->position.x),
+            // std::round(OPTIONS.SIZE_FACTOR.y * tile->position.y),
+            TILE_WIDTH * tile->position.x, TILE_HEIGHT * tile->position.y
+        );
         tile->sprite->setPosition(pos);
-        tile->sprite->setScale(OPTIONS.SCALE_FACTOR);
+        // tile->sprite->setTextureRect(sf::IntRect({0, 0}, {12, 12}));
+        tile->sprite->setScale({SCALE_X, SCALE_Y});
+
+        // std::cout << "Tile: "
+        //           << "Pos(" << tile->sprite->getPosition().x << ", "
+        //           << tile->sprite->getPosition().y << ") "
+        //           << "Scale(" << tile->sprite->getScale().x << ", " << tile->sprite->getScale().y
+        //           << ")\n";
+        // std::cout << "Expected Pos(" << (tile->position.x * TILE_WIDTH) << ", "
+        //           << (tile->position.y * TILE_HEIGHT) << ")\n";
+
         if (OPTIONS.is_ascii) {
-            // tile->bg_sprite.setPosition(pos);
-            // tile->bg_sprite.setScale(OPTIONS.SCALE_FACTOR);
-            // tile->bg_sprite.setColor(tile.bg);
             tile->sprite->setColor(tile->fg);
         }
     }
+    // std::cout << "Computed TILE_WIDTH: " << TILE_WIDTH << " Computed TILE_HEIGHT: " <<
+    // TILE_HEIGHT
+    // << "\n";
 }
 
 void ResizeCameraSystem(Camera& camera) {

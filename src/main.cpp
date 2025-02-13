@@ -5,6 +5,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Keyboard.hpp>
 #include <cstdio>
+#include <iostream>
 #include <string.h>
 #include <thread>
 
@@ -35,14 +36,13 @@ int main(int argc, char** argv) {
 
     // Window setup
     sf::RenderWindow window;
-    sf::RenderTexture renderTexture({RENDER_WIDTH, RENDER_HEIGHT});
     sf::Font font;
     window.create(
         sf::VideoMode({RENDER_WIDTH, RENDER_HEIGHT}), "My Window", sf::Style::Default,
         sf::State::Windowed
     );
     window.setFramerateLimit(TARGET_FRAMERATE);
-    if (!font.openFromFile("include/Hack-Regular.ttf")) {
+    if (!font.openFromFile("include/RobotoMono-Regular.ttf")) {
         printf("Could not load font file!\n");
         return 1;
     }
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
     BuildingGeneratorSystem(grid);
 
     bool wait = false;
-    DrawSystem(window, renderTexture, font, camera, grid, ecs);
+    DrawSystem(window, font, camera, grid, ecs);
 
     while (window.isOpen()) {
         while (const std::optional event = window.pollEvent()) {
@@ -95,7 +95,7 @@ int main(int argc, char** argv) {
                 wait = false;
             } else if (event->is<Event::Resized>()) {
                 ResizeSystem(camera, grid, ecs);
-                DrawSystem(window, renderTexture, font, camera, grid, ecs);
+                DrawSystem(window, font, camera, grid, ecs);
                 wait = true;
             }
 
@@ -135,7 +135,7 @@ int main(int argc, char** argv) {
             std::this_thread::sleep_for(std::chrono::milliseconds(30));
             wait = true;
         }
-        DrawSystem(window, renderTexture, font, camera, grid, ecs);
+        DrawSystem(window, font, camera, grid, ecs);
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }

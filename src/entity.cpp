@@ -1,8 +1,12 @@
 #include "entity.hpp"
 
+#include "grid.hpp"
 #include "json.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <fstream>
+#include <iostream>
 #include <random>
 #include <unordered_map>
 #include <vector>
@@ -25,6 +29,12 @@ void MovementSystem(Grid& grid, ECS& ecs) {
         if (!ecs.has_component<Actor>(entity)) continue;
         Position* pos = ecs.get_component<Position>(entity);
         Movement* mov = ecs.get_component<Movement>(entity);
+
+        if (entity == Player) {
+            int idx = xy_idx(pos->x, pos->y);
+            int gx  = grid.tiles[idx]->sprite->getPosition().x;
+            int gy  = grid.tiles[idx]->sprite->getPosition().y;
+        }
 
         int newX = pos->x + mov->dx;
         int newY = pos->y + mov->dy;
@@ -94,7 +104,10 @@ void AIMovementIntentSystem(Grid& grid, ECS& ecs) {
 void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
     // create map of current positions
     auto& positionMap = ecs.component_manager->positionMap;
+
     std::vector<Entity> to_destroy;
+    to_destroy.reserve(2);
+
     for (Entity attacker : ecs.entities()) {
         if (!ecs.has_component<Actor>(attacker)) continue;
 
@@ -117,13 +130,20 @@ void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
         if (it == positionMap.end()) continue;
 
         Entity defender = it->second;
-        // FIXME: shouldnt be necessary
+        Name* defName   = ecs.get_component<Name>(defender);
+
+        // FIXME: shouldnt be necessary.
+        // removing below line "works" until a player moves with holding
+        // a direction, then releasing. Movement seems to not update
+        // on hold, and thus results in a movement being present,
+        // and wanting to check its own tile.
+
         if (defender == attacker) continue;
         if (defender != Player && attacker != Player) continue;
         if (!ecs.has_component<Health>(defender)) continue;
 
         Health* defHealth = ecs.get_component<Health>(defender);
-        Name* defName     = ecs.get_component<Name>(defender);
+        // Name* defName     = ecs.get_component<Name>(defender);
 
         if (!(defHealth && defName)) continue;
 
@@ -153,18 +173,25 @@ void CombatSystem(ItemRegistry& itemRegistry, ECS& ecs) {
                 }
             }
         }
+        damageDealt = std::max(0, damageDealt);
 
         // Apply damage
         defHealth->curr -= damageDealt;
+        printf("NEW DEF HP: %d\n", defHealth->curr);
 
-        ecs.component_manager->eventLogs.push_back(
-            *attName + " attacks " + *defName + " for " + std::to_string(damageDealt) + " damage!"
-        );
+        if (attacker == Player) {
+            ecs.component_manager->eventLogs.push_back(
+                "You hit " + *defName + " for " + std::to_string(damageDealt) + "!"
+            );
+        } else if (defender == Player) {
+            ecs.component_manager->eventLogs.push_back(
+                *attName + " hits you for " + std::to_string(damageDealt) + "!"
+            );
+        }
 
         // If should die, add to "killed" vec
         if (defHealth->curr <= 0) {
             to_destroy.push_back(defender);
-            continue;
         }
 
         // Cancel movement after combat
@@ -312,9 +339,11 @@ void EntityGeneratorSystem(ECS& ecs) {
         // pick random mob from entity table
         auto mob = data[picker(rng)];
 
+        std::string name = mob["name"];
+        name[0]          = std::toupper(name[0]);
         ecs.create_entity()
             .with(Actor{})
-            .with(Name{mob["name"]})
+            .with(Name{name})
             .with(Position{randx(rng), randy(rng)})
             .with(Renderable(stringSpriteMap.at(mob["name"]), stringColorMap.at(mob["color"])))
             .with(Movement{0, 0})

@@ -48,7 +48,7 @@
     "description": "A plain chest armor",
     "weight": 1.0,
     "armor": {
-      "defense": 5,
+      "defense": 2,
       "resistance": 0
     },
     "equipable": [
@@ -61,7 +61,7 @@
     "description": "A plain set of greaves",
     "weight": 1.0,
     "armor": {
-      "defense": 2,
+      "defense": 1,
       "resistance": 0
     },
     "equipable": [

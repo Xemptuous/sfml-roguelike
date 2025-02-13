@@ -6,32 +6,40 @@
 #include "sprite.hpp"
 
 #include <cmath>
+#include <iostream>
 
 extern int SPRITE_WIDTH, SPRITE_HEIGHT;
 extern int RENDER_WIDTH, RENDER_HEIGHT;
 
 void UISystem(RenderWindow& window, Font& font, ECS& ecs) {
     // draw base
-    unsigned int rh       = 200;
-    unsigned int rw       = RENDER_WIDTH;
-    unsigned int rect_top = RENDER_HEIGHT - rh;
-    RectangleShape rect({(float)rw, (float)rh});
-    rect.setPosition({0.f, (float)rect_top});
-    rect.setFillColor(sf::Color::Black);
-    rect.setOutlineColor(sf::Color::White);
-    rect.setOutlineThickness(1.f);
-    window.draw(rect);
+    // Vector2f viewCenter = window.getView().getCenter();
+    // Vector2f viewSize   = window.getView().getSize();
+    Vector2f viewCenter = window.getView().getCenter();
+    Vector2f viewSize   = window.getView().getSize();
 
-    float top_margin = 20;
+    unsigned int rectHeight = 200;
+
+    int viewLeft   = viewCenter.x - viewSize.x / 2;
+    int viewRight  = viewCenter.x + viewSize.x / 2;
+    int viewTop    = viewCenter.y - viewSize.y / 2;
+    int viewBottom = viewCenter.y + viewSize.y / 2;
+
+    {
+        sf::RectangleShape rect({viewSize.x, (float)rectHeight});
+        rect.setOrigin({0, 0});
+        rect.setPosition({(float)viewLeft, (float)viewBottom - rectHeight});
+        rect.setFillColor(sf::Color::Black);
+        rect.setOutlineColor(sf::Color::White);
+        rect.setOutlineThickness(1.f);
+        window.draw(rect);
+    }
 
     // Player HP
     Health* hp = ecs.get_component<Health>(Player);
-    Text php(font);
-    php.setString("Player HP: " + std::to_string(hp->curr) + "/" + std::to_string(hp->max));
-    php.setCharacterSize(32);
-    php.setFillColor(sf::Color::White);
+    Text php(font, "Player HP: " + std::to_string(hp->curr) + "/" + std::to_string(hp->max), 32);
     php.setStyle(Text::Bold);
-    php.setPosition({20.f, rect_top + top_margin});
+    php.setPosition(Vector2f(viewLeft, viewBottom - rectHeight));
     window.draw(php);
 
     // Event Log
@@ -39,18 +47,27 @@ void UISystem(RenderWindow& window, Font& font, ECS& ecs) {
     // also consider sizing based on window
     std::vector<std::string>& logs = ecs.component_manager->eventLogs;
 
-    int line_height   = 26;
-    float left_margin = 900;
-    int num_lines     = 6;
+    int line_height = 30;
+    int num_lines   = 6;
+
+    size_t longestLine = 0;
+    for (std::string txt : logs) {
+        longestLine = std::max(longestLine, txt.size());
+    }
+
+    int hMargin = 10;
+    int vMargin = 10;
 
     int start = 0;
     for (int i = logs.size() >= num_lines ? logs.size() - num_lines : 0; i < logs.size(); i++) {
-        Text log(font);
-        log.setString(logs[i]);
-        log.setCharacterSize(32);
-        log.setFillColor(sf::Color::White);
-        log.setStyle(Text::Regular);
-        log.setPosition({rw - left_margin, rect_top + top_margin + line_height * start});
+        Text log(font, logs[i], 24);
+        // log.setFillColor(sf::Color::White);
+        // log.setStyle(Text::Bold);
+        // log.setStyle(Text::Regular);
+        log.setPosition(Vector2f(
+            viewRight - log.getLocalBounds().size.length(),
+            viewBottom - rectHeight + vMargin + line_height * start
+        ));
         start++;
         window.draw(log);
     }
@@ -60,27 +77,40 @@ void RenderInventory(sf::RenderWindow& window, sf::Font font, ECS& ecs) {
     Inventory* inventory = ecs.get_component<Inventory>(Player);
 
     // sf::Sprite sprite(SPRITE_SHEET);
-    sf::RectangleShape rect(Vector2f(300, inventory->items.size() * 40));
-    // rect.setOrigin(center);
-    rect.setPosition({0, 0});
-    rect.setFillColor(sf::Color::Black);
-    // rect.setOutlineColor(Color::Yellow);
-    rect.setOutlineThickness(2.0);
-    window.draw(rect);
+    // // rect.setOrigin(center);
+    // rect.setPosition({0, 0});
+    // rect.setFillColor(sf::Color::Black);
+    // // rect.setOutlineColor(Color::Yellow);
+    // rect.setOutlineThickness(2.0);
+    // window.draw(rect);
 
-    int fontSize = 20;
-    int yOffset  = 20;
-    char ch      = 'a';
+    // window.draw(rect);
+    Vector2f viewCenter = window.getView().getCenter();
+    Vector2f viewSize   = window.getView().getSize();
+
+    int viewLeft = viewCenter.x - viewSize.x / 2;
+    int viewTop  = viewCenter.y - viewSize.y / 2;
+
+    sf::RectangleShape rect({0, 0});
+    Vector2f rectPos(viewLeft, viewTop);
+    rect.setPosition(rectPos);
+    rect.setFillColor(sf::Color::Black);
+
+    std::vector<Text> toDraw;
+    float max_size = 0;
+    int fontSize   = 20;
+    int yOffset    = 0;
+    char ch        = 'a';
     for (Entity entity : inventory->items) {
         item::Item* item     = ecs.get_component<item::Item>(entity);
         SpriteTiles tileType = stringSpriteMap.at(item->type);
 
         sf::Text label(font, std::string(1, ch) + ") ", fontSize);
-        label.setPosition(Vector2f(5, yOffset));
+        label.setPosition(Vector2f(viewLeft + 5, viewTop + yOffset));
 
         // Draw the label and item name
         sf::Text icon(font, itemCharMap.at(item->type), fontSize);
-        icon.setPosition(Vector2f(35, yOffset));
+        icon.setPosition(Vector2f(viewLeft + 35, viewTop + yOffset));
 
         item::Material::Type* materialType = ecs.get_component<item::Material::Type>(entity);
         if (materialType) {
@@ -88,13 +118,22 @@ void RenderInventory(sf::RenderWindow& window, sf::Font font, ECS& ecs) {
         }
 
         sf::Text text(font, item->name, fontSize);
-        text.setPosition(Vector2f(50, yOffset));
-        window.draw(label);
-        window.draw(icon);
-        window.draw(text);
-
+        text.setPosition(Vector2f(viewLeft + 50, viewTop + yOffset));
+        max_size = std::max(
+            max_size, label.getLocalBounds().size.length() + icon.getLocalBounds().size.length()
+                          + text.getLocalBounds().size.length()
+        );
+        toDraw.push_back(label);
+        toDraw.push_back(icon);
+        toDraw.push_back(text);
         yOffset += SPRITE_HEIGHT + 20;
         ch++;
+    }
+    rect.setSize(Vector2f(max_size, yOffset));
+    window.draw(rect);
+
+    for (Text txt : toDraw) {
+        window.draw(txt);
     }
 }
 
