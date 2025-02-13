@@ -13,10 +13,6 @@ extern constexpr int RENDER_HEIGHT  = 1440;
 extern constexpr int CONSOLE_WIDTH  = 80;
 extern constexpr int CONSOLE_HEIGHT = 45;
 
-// extern std::unordered_map<Entity, Position> positions;
-// extern std::unordered_map<Entity, Movement> movements;
-// extern std::unordered_map<Entity, Renderable> renderables;
-
 sf::Texture SPRITE_SHEET;
 sf::Image SPRITE_SHEET_IMAGE;
 Options OPTIONS{};
@@ -46,7 +42,7 @@ int main(int argc, char** argv) {
         sf::State::Windowed
     );
     window.setFramerateLimit(TARGET_FRAMERATE);
-    if (!font.openFromFile("include/DejaVuSans.ttf")) {
+    if (!font.openFromFile("include/Hack-Regular.ttf")) {
         printf("Could not load font file!\n");
         return 1;
     }
@@ -79,6 +75,8 @@ int main(int argc, char** argv) {
     // Give player an item
     addItemToInventory(Player, itemRegistry.get("wood sword"), ecs);
     addItemToInventory(Player, itemRegistry.get("iron helmet"), ecs);
+    addItemToInventory(Player, itemRegistry.get("bronze chest"), ecs);
+    addItemToInventory(Player, itemRegistry.get("steel boots"), ecs);
 
     // Create Map
     Grid grid{};

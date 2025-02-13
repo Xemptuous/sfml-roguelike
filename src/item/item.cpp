@@ -39,6 +39,8 @@ void ItemGeneratorSystem(ItemRegistry& registry, ECS& ecs) {
                 }
             }
             Entity entity = builder.build();
+            ecs.add_component(entity, materialType);
+
             registry.register_item(baseItem.name, entity);
         }
 

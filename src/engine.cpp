@@ -26,7 +26,7 @@ void DrawSystem(
     render.setView(camera.view);
     camera.view.setViewport({
         {0.f, 0.f },
-        {1.f, 0.8f}
+        {1.f, 0.9f}
     });
     RenderSystem(render, camera, grid, ecs);
     render.display();
