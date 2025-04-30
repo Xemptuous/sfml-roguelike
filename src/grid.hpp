@@ -6,8 +6,8 @@
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/Sprite.hpp>
 
-constexpr int MAP_WIDTH  = 400;
-constexpr int MAP_HEIGHT = 400;
+constexpr int MAP_WIDTH  = 100;
+constexpr int MAP_HEIGHT = 100;
 
 enum TileType {
     Wall,
@@ -22,6 +22,7 @@ struct Tile {
     sf::Vector2i position;
     sf::Color fg;
     sf::Color bg;
+    // bool seen;
 
     Tile();
     Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype);

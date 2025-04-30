@@ -6,24 +6,22 @@
 #include "sprite.hpp"
 
 #include <cmath>
-#include <iostream>
 
 extern int SPRITE_WIDTH, SPRITE_HEIGHT;
 extern int RENDER_WIDTH, RENDER_HEIGHT;
 
 void UISystem(RenderWindow& window, Font& font, ECS& ecs) {
-    // draw base
-    // Vector2f viewCenter = window.getView().getCenter();
-    // Vector2f viewSize   = window.getView().getSize();
-    Vector2f viewCenter = window.getView().getCenter();
-    Vector2f viewSize   = window.getView().getSize();
+    const Vector2f viewCenter = window.getView().getCenter();
+    const Vector2f viewSize   = window.getView().getSize();
 
-    unsigned int rectHeight = 200;
+    const unsigned int rectHeight = 200;
 
-    int viewLeft   = viewCenter.x - viewSize.x / 2;
-    int viewRight  = viewCenter.x + viewSize.x / 2;
-    int viewTop    = viewCenter.y - viewSize.y / 2;
-    int viewBottom = viewCenter.y + viewSize.y / 2;
+    const int viewLeft   = viewCenter.x - viewSize.x / 2;
+    const int viewRight  = viewCenter.x + viewSize.x / 2;
+    const int viewTop    = viewCenter.y - viewSize.y / 2;
+    const int viewBottom = viewCenter.y + viewSize.y / 2;
+    const int hMargin    = 5;
+    const int vMargin    = 2;
 
     {
         sf::RectangleShape rect({viewSize.x, (float)rectHeight});
@@ -36,27 +34,21 @@ void UISystem(RenderWindow& window, Font& font, ECS& ecs) {
     }
 
     // Player HP
-    Health* hp = ecs.get_component<Health>(Player);
+    const Health* hp = ecs.get_component<Health>(Player);
     Text php(font, "Player HP: " + std::to_string(hp->curr) + "/" + std::to_string(hp->max), 32);
     php.setStyle(Text::Bold);
-    php.setPosition(Vector2f(viewLeft, viewBottom - rectHeight));
+    php.setPosition(Vector2f(viewLeft, viewBottom - rectHeight + vMargin));
     window.draw(php);
 
-    // Event Log
-    // TODO: add "scrolling" to the logs to fit in screen
-    // also consider sizing based on window
     std::vector<std::string>& logs = ecs.component_manager->eventLogs;
 
-    int line_height = 30;
-    int num_lines   = 6;
+    const int line_height = 30;
+    const int num_lines   = 6;
 
     size_t longestLine = 0;
     for (std::string txt : logs) {
         longestLine = std::max(longestLine, txt.size());
     }
-
-    int hMargin = 10;
-    int vMargin = 10;
 
     int start = 0;
     for (int i = logs.size() >= num_lines ? logs.size() - num_lines : 0; i < logs.size(); i++) {

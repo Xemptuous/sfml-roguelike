@@ -22,16 +22,10 @@ MenuOptions MENU_OPTIONS = {.show_inventory = false};
 
 void DrawSystem(RenderWindow& window, Font& font, Camera& camera, Grid& grid, ECS& ecs) {
     window.clear();
-    window.setView(camera.view);
-    // camera.view.setViewport({
-    //     {0.f, 0.f  },
-    //     {1.f, 0.89f}
-    // });
+    window.setView(camera.gameView);
     RenderSystem(window, camera, grid, ecs);
-    // window.display();
-    // window.draw(sf::Sprite(window.getTexture()));
+    window.setView(camera.uiView);
     UISystem(window, font, ecs);
-    // if (MENU_OPTIONS.show_inventory) showInventory(window, font, ecs);
     if (MENU_OPTIONS.show_inventory) RenderInventory(window, font, ecs);
     window.display();
 }
@@ -45,7 +39,10 @@ void RenderSystem(RenderWindow& window, Camera& camera, Grid& grid, ECS& ecs) {
             std::shared_ptr<Tile> tile = grid.tiles[idx];
 
             Sprite* bg = getSpriteTile(OPTIONS.is_ascii ? BrownWall1 : Block);
+            // TODO: implement this in grid and here (fog of war)
+            // if (tile->seen) {
             window.draw(*tile->sprite);
+            // }
         }
     }
 
@@ -139,6 +136,7 @@ void CameraSystem(Camera& camera, ECS& ecs) {
     bool player_above_center    = playerPos->y <= camera.y2 / 2;
     bool player_below_center    = playerPos->y >= MAP_HEIGHT - view_ch;
 
+    // TODO: consider using std::clamp for view bounds
     if (playerMov->dx < 0 && (view_at_left || (view_at_right && player_right_of_center)))
         can_move_view_x = false;
     else if (playerMov->dx > 0 && (view_at_right || (view_at_left && player_left_of_center)))
@@ -174,10 +172,10 @@ void ResizeSystem(Camera& camera, Grid& grid, ECS& ecs) {
 
     // update camera position
     Position* playerPos = ecs.get_component<Position>(Player);
-    camera.view.setCenter(
+    camera.gameView.setCenter(
         Vector2f(playerPos->x * TILE_WIDTH, playerPos->y * TILE_HEIGHT - CONSOLE_HEIGHT)
     );
-    camera.view.setSize(Vector2f(CONSOLE_WIDTH * TILE_WIDTH, CONSOLE_HEIGHT * TILE_HEIGHT));
+    camera.gameView.setSize(Vector2f(CONSOLE_WIDTH * TILE_WIDTH, CONSOLE_HEIGHT * TILE_HEIGHT));
 
     // update camera dimensions
     ResizeCameraSystem(camera);
@@ -197,35 +195,19 @@ void ResizeSystem(Camera& camera, Grid& grid, ECS& ecs) {
 
     // resize map tiles
     for (std::shared_ptr<Tile> tile : grid.tiles) {
-        Vector2f pos(
-            // std::round(OPTIONS.SIZE_FACTOR.x * tile->position.x),
-            // std::round(OPTIONS.SIZE_FACTOR.y * tile->position.y),
-            TILE_WIDTH * tile->position.x, TILE_HEIGHT * tile->position.y
-        );
+        Vector2f pos(TILE_WIDTH * tile->position.x, TILE_HEIGHT * tile->position.y);
         tile->sprite->setPosition(pos);
-        // tile->sprite->setTextureRect(sf::IntRect({0, 0}, {12, 12}));
         tile->sprite->setScale({SCALE_X, SCALE_Y});
-
-        // std::cout << "Tile: "
-        //           << "Pos(" << tile->sprite->getPosition().x << ", "
-        //           << tile->sprite->getPosition().y << ") "
-        //           << "Scale(" << tile->sprite->getScale().x << ", " << tile->sprite->getScale().y
-        //           << ")\n";
-        // std::cout << "Expected Pos(" << (tile->position.x * TILE_WIDTH) << ", "
-        //           << (tile->position.y * TILE_HEIGHT) << ")\n";
 
         if (OPTIONS.is_ascii) {
             tile->sprite->setColor(tile->fg);
         }
     }
-    // std::cout << "Computed TILE_WIDTH: " << TILE_WIDTH << " Computed TILE_HEIGHT: " <<
-    // TILE_HEIGHT
-    // << "\n";
 }
 
 void ResizeCameraSystem(Camera& camera) {
-    Vector2f size   = camera.view.getSize();
-    Vector2f center = camera.view.getCenter();
+    Vector2f size   = camera.gameView.getSize();
+    Vector2f center = camera.gameView.getCenter();
 
     int cx = center.x / OPTIONS.SIZE_FACTOR.x;
     int cy = center.y / OPTIONS.SIZE_FACTOR.y;
@@ -268,7 +250,7 @@ void Camera::moveCamera(int dx, int dy) {
     if (nx1 < 0 || ny1 < 0 || nx2 > MAP_WIDTH || ny2 > MAP_HEIGHT) {
         return;
     }
-    this->view.move({
+    this->gameView.move({
         dx * SPRITE_WIDTH * OPTIONS.SCALE_FACTOR.x,
         dy * SPRITE_HEIGHT * OPTIONS.SCALE_FACTOR.y,
     });

@@ -47,7 +47,17 @@ int main(int argc, char** argv) {
         return 1;
     }
 
-    Camera camera = Camera{.view = sf::View()};
+    // FIXME: subpixel scaling issue when using viewport.
+    // can use view.setSize(), but this will leave
+    // the ui "over" the view, allowing player to move behind it.
+    Camera camera = Camera{
+        .gameView = sf::View(),
+        .uiView   = window.getDefaultView(),
+    };
+    camera.gameView.setViewport({
+        {0.f, 0.f  },
+        {1.f, 0.85f}
+    });
 
     // Sprite Setup
     if (auto error_code = SpritesheetLoadingSystem() != 0) {
@@ -65,6 +75,7 @@ int main(int argc, char** argv) {
                  .with(Movement{0, 0})
                  .with(Health{100, 100})
                  .with(Damage{10, 10})
+                 .with(Vision{10})
                  .with(Inventory{})
                  .build();
 

@@ -18,7 +18,8 @@ extern MenuOptions MENU_OPTIONS;
 extern Options OPTIONS;
 
 struct Camera {
-    sf::View view;
+    sf::View gameView;
+    sf::View uiView;
     int x1; // Top left
     int y1; // Top Left
     int x2; // Bottom Right

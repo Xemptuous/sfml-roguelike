@@ -21,6 +21,7 @@ Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype) :
     sprite_type(stype),
     fg(COLOR_ARRAY[rl::Color::White]),
     bg(COLOR_ARRAY[rl::Color::Black]),
+    // seen(false),
     sprite(std::make_shared<sf::Sprite>(*getSpriteTile(stype))) {};
 
 Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg) :
@@ -29,6 +30,7 @@ Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg) :
     sprite_type(stype),
     fg(COLOR_ARRAY[fg]),
     bg(COLOR_ARRAY[rl::Color::Black]),
+    // seen(false),
     sprite(std::make_shared<sf::Sprite>(*getSpriteTile(stype))) {};
 
 Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg, rl::Color bg) :
@@ -37,6 +39,7 @@ Tile::Tile(sf::Vector2i pos, TileType ttype, SpriteTiles stype, rl::Color fg, rl
     sprite_type(stype),
     fg(COLOR_ARRAY[fg]),
     bg(COLOR_ARRAY[bg]),
+    // seen(false),
     sprite(std::make_shared<sf::Sprite>(*getSpriteTile(stype))) {};
 
 void Tile::resetSprite() {
