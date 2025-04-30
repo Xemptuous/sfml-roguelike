@@ -15,27 +15,21 @@ the world.
 
 ## Controls
 
-standard ASCII roguelike keybinds for movement
-
- y  u 
-h j k l
- b  n
+Standard ASCII roguelike keybinds for movement
 
 Can also use arrow keys in place of hjkl
+ 
+- <kbd>h</kbd> move West
+- <kbd>j</kbd> move South
+- <kbd>k</kbd> move North
+- <kbd>l</kbd> move East
+- <kbd>y</kbd> move North-West
+- <kbd>u</kbd> move North-East
+- <kbd>b</kbd> move South-West
+- <kbd>n</kbd> move South-East
 
-<kbd>h</kbd> move West
-<kbd>j</kbd> move South
-<kbd>k</kbd> move North
-<kbd>l</kbd> move East
-
-<kbd>y</kbd> move North-West
-<kbd>u</kbd> move North-East
-<kbd>b</kbd> move South-West
-<kbd>n</kbd> move South-East
-
-<kbd>Esc</kbd> - close active menu item
-<kbd>a</kbd> - toggles between ASCII and Spritesheet graphics (might take a few tries atm)
-<kbd>i</kbd> - show inventory
-
-<kbd>q</kbd> - close the game
-
+- <kbd>Esc</kbd> - close active menu item
+- <kbd>a</kbd> - toggles between ASCII and Spritesheet graphics (might take a few tries atm)
+- <kbd>i</kbd> - show inventory
+  
+- <kbd>q</kbd> - close the game
